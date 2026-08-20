@@ -30,9 +30,12 @@ const defaultCategorias = [
   { id: 6, nome: "Gestor", situacao: "ATIVO" as Status },
 ];
 
-interface Props { screen: "escolaridade" | "categorias" }
+interface Props {
+  screen: "escolaridade" | "categorias";
+  searchQuery?: string;
+}
 
-export function SimpleListScreen({ screen }: Props) {
+export function SimpleListScreen({ screen, searchQuery = "" }: Props) {
   const isEscolaridade = screen === "escolaridade";
   const initialItems = isEscolaridade ? defaultEscolaridades : defaultCategorias;
 
@@ -69,17 +72,18 @@ export function SimpleListScreen({ screen }: Props) {
     showToast("success", "Item excluído.");
   };
 
-  const active = items.filter(i => i.situacao !== "DELETADO");
+  const q = searchQuery.trim().toLowerCase();
+  const active = items.filter(i => i.situacao !== "DELETADO" && (!q || i.nome.toLowerCase().includes(q)));
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-4 lg:p-6 space-y-5">
       {toast && <Toast type={toast.type} message={toast.message} onClose={hideToast} />}
       <ConfirmModal open={confirmDelete !== null} title={`Excluir ${label}`} description="Este item será removido." confirmLabel="Excluir" onConfirm={() => confirmDelete && handleDelete(confirmDelete)} onCancel={() => setConfirmDelete(null)} />
 
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-gray-900">{title}</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{active.length} item{active.length !== 1 ? "ns" : ""} cadastrado{active.length !== 1 ? "s" : ""}</p>
+          <p className="text-sm text-gray-500 mt-0.5">{active.length} item{active.length !== 1 ? "ns" : ""} encontrado{active.length !== 1 ? "s" : ""}</p>
         </div>
         <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90" style={{ background: "#0F4C81" }}>
           <Plus className="w-4 h-4" /> Novo
@@ -87,6 +91,7 @@ export function SimpleListScreen({ screen }: Props) {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden max-w-lg">
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50/50">
@@ -96,20 +101,25 @@ export function SimpleListScreen({ screen }: Props) {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {active.map(item => (
-              <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
-                <td className="px-4 py-3 text-sm font-medium text-gray-800">{item.nome}</td>
-                <td className="px-4 py-3"><StatusBadge status={item.situacao} /></td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-1 justify-end">
-                    <button onClick={() => openEdit(item)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-600"><Edit2 className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => setConfirmDelete(item.id)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {active.length === 0 ? (
+              <tr><td colSpan={3} className="text-center py-8 text-gray-400 text-sm">Nenhum item encontrado{searchQuery ? ` para "${searchQuery}"` : ""}.</td></tr>
+            ) : (
+              active.map(item => (
+                <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="px-4 py-3 text-sm font-medium text-gray-800">{item.nome}</td>
+                  <td className="px-4 py-3"><StatusBadge status={item.situacao} /></td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1 justify-end">
+                      <button onClick={() => openEdit(item)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-600"><Edit2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => setConfirmDelete(item.id)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {showForm && (

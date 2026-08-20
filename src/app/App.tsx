@@ -23,12 +23,15 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentScreen, setCurrentScreen] = useState<Screen>("dashboard");
   const [editPessoa, setEditPessoa] = useState<Person | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleNavigate = (screen: Screen, data?: unknown) => {
     if (screen === "pessoa-form") {
       setEditPessoa(data as Person | null);
     }
     setCurrentScreen(screen);
+    setSidebarOpen(false);
     window.scrollTo(0, 0);
   };
 
@@ -36,6 +39,8 @@ export default function App() {
     setIsLoggedIn(false);
     setCurrentScreen("dashboard");
     setEditPessoa(null);
+    setSearchQuery("");
+    setSidebarOpen(false);
   };
 
   if (!isLoggedIn) {
@@ -44,31 +49,44 @@ export default function App() {
 
   const renderScreen = () => {
     switch (currentScreen) {
-      case "dashboard": return <DashboardScreen />;
-      case "pessoas": return <PessoasScreen onNavigate={handleNavigate} />;
+      case "dashboard": return <DashboardScreen searchQuery={searchQuery} />;
+      case "pessoas": return <PessoasScreen onNavigate={handleNavigate} searchQuery={searchQuery} />;
       case "pessoa-form": return <PessoaFormScreen onNavigate={handleNavigate} editData={editPessoa} />;
-      case "escolas": return <EscolasScreen />;
-      case "escolaridade": return <SimpleListScreen screen="escolaridade" />;
-      case "categorias": return <SimpleListScreen screen="categorias" />;
-      case "modalidades": return <ModalidadesScreen />;
-      case "periodos": return <PeriodosScreen />;
-      case "turmas": return <TurmasScreen />;
-      case "matriculas": return <MatriculasScreen />;
-      case "aulas": return <AulasScreen />;
-      case "frequencia": return <FrequenciaScreen />;
-      case "acompanhamentos": return <AcompanhamentosScreen onNavigate={handleNavigate} />;
+      case "escolas": return <EscolasScreen searchQuery={searchQuery} />;
+      case "escolaridade": return <SimpleListScreen screen="escolaridade" searchQuery={searchQuery} />;
+      case "categorias": return <SimpleListScreen screen="categorias" searchQuery={searchQuery} />;
+      case "modalidades": return <ModalidadesScreen searchQuery={searchQuery} />;
+      case "periodos": return <PeriodosScreen searchQuery={searchQuery} />;
+      case "turmas": return <TurmasScreen searchQuery={searchQuery} />;
+      case "matriculas": return <MatriculasScreen searchQuery={searchQuery} />;
+      case "aulas": return <AulasScreen searchQuery={searchQuery} />;
+      case "frequencia": return <FrequenciaScreen searchQuery={searchQuery} />;
+      case "acompanhamentos": return <AcompanhamentosScreen onNavigate={handleNavigate} searchQuery={searchQuery} />;
       case "acompanhamento-form": return <AcompanhamentoFormScreen onNavigate={handleNavigate} />;
-      case "relatorios": return <RelatoriosScreen />;
-      case "configuracoes": return <ConfiguracoesScreen />;
-      default: return <DashboardScreen />;
+      case "relatorios": return <RelatoriosScreen searchQuery={searchQuery} />;
+      case "configuracoes": return <ConfiguracoesScreen searchQuery={searchQuery} />;
+      default: return <DashboardScreen searchQuery={searchQuery} />;
     }
   };
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <Sidebar currentScreen={currentScreen} onNavigate={handleNavigate} />
+      <Sidebar
+        currentScreen={currentScreen}
+        onNavigate={handleNavigate}
+        mobileOpen={sidebarOpen}
+        onMobileClose={() => setSidebarOpen(false)}
+      />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <Header currentScreen={currentScreen} onLogout={handleLogout} onNavigate={handleNavigate} />
+        <Header
+          currentScreen={currentScreen}
+          onLogout={handleLogout}
+          onNavigate={handleNavigate}
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          sidebarOpen={sidebarOpen}
+          onSidebarToggle={() => setSidebarOpen(prev => !prev)}
+        />
         <main className="flex-1 overflow-y-auto">
           {renderScreen()}
         </main>

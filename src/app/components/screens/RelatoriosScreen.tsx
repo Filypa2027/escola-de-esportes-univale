@@ -22,24 +22,32 @@ const alunosPorEscola = [
   { escola: "E.M. Sul", alunos: 15 },
 ];
 
-export function RelatoriosScreen() {
+interface RelatoriosScreenProps {
+  searchQuery?: string;
+}
+
+export function RelatoriosScreen({ searchQuery = "" }: RelatoriosScreenProps) {
   const [selectedReport, setSelectedReport] = useState("alunos-modalidade");
   const [periodo, setPeriodo] = useState("2026/1°");
   const [modalidade, setModalidade] = useState("");
   const { toast, showToast, hideToast } = useToast();
+
+  const q = searchQuery.trim().toLowerCase();
 
   const handleExport = (tipo: "PDF" | "Excel") => {
     showToast("success", `Relatório exportado como ${tipo} com sucesso!`);
   };
 
   const current = reports.find(r => r.id === selectedReport);
-  const chartData = selectedReport === "alunos-modalidade" ? mockDashboard.alunosPorModalidade.map(d => ({ name: d.name, value: d.value }))
+  const baseData = selectedReport === "alunos-modalidade" ? mockDashboard.alunosPorModalidade.map(d => ({ name: d.name, value: d.value }))
     : selectedReport === "alunos-escola" ? alunosPorEscola.map(d => ({ name: d.escola, value: d.alunos }))
     : selectedReport.includes("frequencia") ? mockDashboard.frequenciaPorTurma.map(d => ({ name: d.turma, value: d.frequencia }))
     : mockDashboard.evolucaoMatriculas.map(d => ({ name: d.mes, value: d.matriculas }));
 
+  const chartData = q ? baseData.filter(d => d.name.toLowerCase().includes(q)) : baseData;
+
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-4 lg:p-6 space-y-5">
       {toast && <Toast type={toast.type} message={toast.message} onClose={hideToast} />}
 
       <div>
@@ -51,21 +59,25 @@ export function RelatoriosScreen() {
         {/* Sidebar: report list */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-1">
           <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-2 mb-3">Tipos de Relatório</p>
-          {["Alunos", "Matrículas", "Frequência", "Acompanhamentos"].map(cat => (
-            <div key={cat}>
-              <p className="text-xs text-gray-300 uppercase tracking-wider px-2 pt-3 pb-1 font-semibold">{cat}</p>
-              {reports.filter(r => r.category === cat).map(r => (
-                <button
-                  key={r.id}
-                  onClick={() => setSelectedReport(r.id)}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all text-left ${selectedReport === r.id ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-600 hover:bg-gray-50"}`}
-                >
-                  <span className={selectedReport === r.id ? "text-blue-600" : "text-gray-400"}>{r.icon}</span>
-                  {r.label}
-                </button>
-              ))}
-            </div>
-          ))}
+          {["Alunos", "Matrículas", "Frequência", "Acompanhamentos"].map(cat => {
+            const catReports = reports.filter(r => r.category === cat && (!q || r.label.toLowerCase().includes(q) || r.category.toLowerCase().includes(q)));
+            if (catReports.length === 0) return null;
+            return (
+              <div key={cat}>
+                <p className="text-xs text-gray-300 uppercase tracking-wider px-2 pt-3 pb-1 font-semibold">{cat}</p>
+                {catReports.map(r => (
+                  <button
+                    key={r.id}
+                    onClick={() => setSelectedReport(r.id)}
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all text-left ${selectedReport === r.id ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-600 hover:bg-gray-50"}`}
+                  >
+                    <span className={selectedReport === r.id ? "text-blue-600" : "text-gray-400"}>{r.icon}</span>
+                    {r.label}
+                  </button>
+                ))}
+              </div>
+            );
+          })}
         </div>
 
         {/* Main content */}
@@ -139,6 +151,7 @@ export function RelatoriosScreen() {
                 <Download className="w-3.5 h-3.5" /> Exportar tabela
               </button>
             </div>
+            <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50/50">
@@ -168,6 +181,7 @@ export function RelatoriosScreen() {
                 })}
               </tbody>
             </table>
+            </div>
           </div>
         </div>
       </div>

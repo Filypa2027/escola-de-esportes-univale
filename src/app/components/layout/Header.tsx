@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from "react";
-import { Bell, Search, ChevronDown, LogOut, Settings } from "lucide-react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { Bell, Search, ChevronDown, LogOut, Settings, X, Menu } from "lucide-react";
 import type { Screen } from "./Sidebar";
+import { mockModalidades, mockTurmas, mockPessoas } from "../data/mockData";
 
 const screenTitles: Record<string, string> = {
   dashboard: "Dashboard",
@@ -22,55 +23,199 @@ const screenTitles: Record<string, string> = {
   configuracoes: "Configurações",
 };
 
+const navPages: { label: string; screen: Screen }[] = [
+  { label: "Dashboard", screen: "dashboard" },
+  { label: "Pessoas", screen: "pessoas" },
+  { label: "Escolas", screen: "escolas" },
+  { label: "Escolaridade", screen: "escolaridade" },
+  { label: "Categorias de Pessoa", screen: "categorias" },
+  { label: "Modalidades", screen: "modalidades" },
+  { label: "Períodos Letivos", screen: "periodos" },
+  { label: "Turmas", screen: "turmas" },
+  { label: "Matrículas", screen: "matriculas" },
+  { label: "Aulas", screen: "aulas" },
+  { label: "Frequência", screen: "frequencia" },
+  { label: "Acompanhamentos", screen: "acompanhamentos" },
+  { label: "Relatórios", screen: "relatorios" },
+  { label: "Configurações", screen: "configuracoes" },
+];
+
+type SearchResult = {
+  id: string;
+  label: string;
+  subtitle?: string;
+  screen: Screen;
+  category: string;
+};
+
+function getSearchResults(query: string): SearchResult[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+
+  const results: SearchResult[] = [];
+
+  navPages
+    .filter(p => p.label.toLowerCase().includes(q))
+    .forEach(p => results.push({ id: `page-${p.screen}`, label: p.label, screen: p.screen, category: "Páginas" }));
+
+  mockModalidades
+    .filter(m => m.situacao !== "DELETADO" && (m.modalidade.toLowerCase().includes(q) || m.descricao.toLowerCase().includes(q)))
+    .forEach(m => results.push({ id: `mod-${m.id}`, label: m.modalidade, subtitle: m.descricao, screen: "modalidades", category: "Modalidades" }));
+
+  mockTurmas
+    .filter(t => t.situacao !== "DELETADO" && (t.nome.toLowerCase().includes(q) || t.modalidade.toLowerCase().includes(q)))
+    .forEach(t => results.push({ id: `turma-${t.id}`, label: t.nome, subtitle: t.modalidade, screen: "turmas", category: "Turmas" }));
+
+  mockPessoas
+    .filter(p => p.situacao !== "DELETADO" && (p.nome.toLowerCase().includes(q) || p.cpf.includes(q) || p.email.toLowerCase().includes(q)))
+    .forEach(p => results.push({ id: `pessoa-${p.id}`, label: p.nome, subtitle: p.categoria, screen: "pessoas", category: "Pessoas" }));
+
+  return results.slice(0, 12);
+}
+
 interface HeaderProps {
   currentScreen: string;
   onLogout?: () => void;
   onNavigate?: (screen: Screen) => void;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
+  sidebarOpen?: boolean;
+  onSidebarToggle?: () => void;
 }
 
-export function Header({ currentScreen, onLogout, onNavigate }: HeaderProps) {
+export function Header({
+  currentScreen,
+  onLogout,
+  onNavigate,
+  searchQuery = "",
+  onSearchChange,
+  sidebarOpen = false,
+  onSidebarToggle,
+}: HeaderProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  const searchResults = useMemo(() => getSearchResults(searchQuery), [searchQuery]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
       }
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setIsSearchOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleSearchSelect = (result: SearchResult) => {
+    onNavigate?.(result.screen);
+    setIsSearchOpen(false);
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && searchResults.length > 0) {
+      handleSearchSelect(searchResults[0]);
+    }
+    if (e.key === "Escape") {
+      setIsSearchOpen(false);
+    }
+  };
+
+  const groupedResults = searchResults.reduce<Record<string, SearchResult[]>>((acc, r) => {
+    if (!acc[r.category]) acc[r.category] = [];
+    acc[r.category].push(r);
+    return acc;
+  }, {});
+
   return (
-    <header className="h-14 bg-white border-b border-gray-100 flex items-center justify-between px-6 flex-shrink-0">
-      <div className="flex items-center gap-2 text-sm text-gray-500">
-        <span className="text-gray-400">Escola de Esportes</span>
-        <span className="text-gray-300">/</span>
-        <span className="text-gray-700 font-medium">{screenTitles[currentScreen] || currentScreen}</span>
+    <header className="h-14 bg-white border-b border-gray-100 flex items-center justify-between gap-3 px-4 lg:px-6 flex-shrink-0">
+      <div className="flex items-center gap-2 min-w-0 flex-1 lg:flex-none">
+        <button
+          type="button"
+          onClick={onSidebarToggle}
+          className="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-50 text-gray-600 transition-colors flex-shrink-0"
+          aria-label={sidebarOpen ? "Fechar menu" : "Abrir menu"}
+        >
+          {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+        </button>
+        <div className="hidden lg:flex items-center gap-2 text-sm text-gray-500 min-w-0">
+          <span className="text-gray-400">Escola de Esportes</span>
+          <span className="text-gray-300">/</span>
+          <span className="text-gray-700 font-medium truncate">{screenTitles[currentScreen] || currentScreen}</span>
+        </div>
+        <span className="lg:hidden text-sm font-medium text-gray-700 truncate">
+          {screenTitles[currentScreen] || currentScreen}
+        </span>
       </div>
 
-      <div className="flex items-center gap-3">
-        {/* Search */}
-        <div className="relative">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+      <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+        <div className="relative" ref={searchRef}>
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
           <input
             type="text"
             placeholder="Pesquisar..."
-            className="pl-9 pr-4 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg w-56 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+            value={searchQuery}
+            onChange={e => {
+              onSearchChange?.(e.target.value);
+              setIsSearchOpen(true);
+            }}
+            onFocus={() => setIsSearchOpen(true)}
+            onKeyDown={handleSearchKeyDown}
+            className="pl-9 pr-8 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg w-32 sm:w-44 lg:w-56 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => {
+                onSearchChange?.("");
+                setIsSearchOpen(false);
+              }}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+              title="Limpar busca"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+
+          {isSearchOpen && searchQuery.trim() && (
+            <div className="absolute right-0 lg:right-0 left-0 lg:left-auto top-full mt-2 w-72 sm:w-80 lg:w-96 max-h-80 overflow-y-auto bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
+              {searchResults.length === 0 ? (
+                <p className="px-4 py-3 text-sm text-gray-400">Nenhum resultado encontrado</p>
+              ) : (
+                Object.entries(groupedResults).map(([category, items]) => (
+                  <div key={category}>
+                    <p className="px-4 py-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">{category}</p>
+                    {items.map(result => (
+                      <button
+                        key={result.id}
+                        type="button"
+                        onClick={() => handleSearchSelect(result)}
+                        className="w-full flex flex-col items-start px-4 py-2 text-left hover:bg-gray-50 transition-colors"
+                      >
+                        <span className="text-sm text-gray-800 font-medium">{result.label}</span>
+                        {result.subtitle && (
+                          <span className="text-xs text-gray-400 truncate w-full">{result.subtitle}</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                ))
+              )}
+            </div>
+          )}
         </div>
 
-        {/* Notifications */}
-        <button className="relative w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-50 transition-colors">
+        <button className="relative w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-50 transition-colors flex-shrink-0">
           <Bell className="w-4.5 h-4.5 text-gray-500" />
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
         </button>
 
-        {/* User profile dropdown */}
-        <div className="relative pl-3 border-l border-gray-100" ref={dropdownRef}>
+        <div className="relative pl-2 sm:pl-3 border-l border-gray-100" ref={dropdownRef}>
           <button
             type="button"
             onClick={() => setIsDropdownOpen(prev => !prev)}
@@ -88,13 +233,12 @@ export function Header({ currentScreen, onLogout, onNavigate }: HeaderProps) {
               <div className="text-xs text-gray-400 leading-tight">Coordenador</div>
             </div>
             <ChevronDown
-              className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+              className={`hidden sm:block w-4 h-4 text-gray-400 transition-transform duration-200 ${
                 isDropdownOpen ? "rotate-180" : ""
               }`}
             />
           </button>
 
-          {/* Dropdown Menu */}
           {isDropdownOpen && (
             <div className="absolute right-0 top-full mt-2 w-60 bg-white rounded-xl shadow-lg border border-gray-100 py-1.5 z-50">
               <div className="px-3.5 py-2.5 border-b border-gray-100">

@@ -5,7 +5,11 @@ import { ConfirmModal } from "../shared/ConfirmModal";
 import { Toast, useToast } from "../shared/Toast";
 import { mockEscolas, type School, type Status } from "../data/mockData";
 
-export function EscolasScreen() {
+interface EscolasScreenProps {
+  searchQuery?: string;
+}
+
+export function EscolasScreen({ searchQuery = "" }: EscolasScreenProps) {
   const [escolas, setEscolas] = useState<School[]>(mockEscolas);
   const [search, setSearch] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
@@ -15,7 +19,10 @@ export function EscolasScreen() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { toast, showToast, hideToast } = useToast();
 
-  const filtered = escolas.filter(e => e.situacao !== "DELETADO" && (!search || e.nome.toLowerCase().includes(search.toLowerCase())));
+  const effectiveSearch = (search || searchQuery).trim().toLowerCase();
+  const filtered = escolas.filter(
+    e => e.situacao !== "DELETADO" && (!effectiveSearch || e.nome.toLowerCase().includes(effectiveSearch) || e.cnpj.includes(effectiveSearch))
+  );
 
   const openNew = () => { setEditItem(null); setForm({ nome: "", cnpj: "", situacao: "ATIVO" }); setErrors({}); setShowForm(true); };
   const openEdit = (e: School) => { setEditItem(e); setForm({ nome: e.nome, cnpj: e.cnpj, situacao: e.situacao }); setErrors({}); setShowForm(true); };
@@ -47,7 +54,7 @@ export function EscolasScreen() {
     `w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 bg-gray-50 ${errors[field] ? "border-red-300" : "border-gray-200"}`;
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-4 lg:p-6 space-y-5">
       {toast && <Toast type={toast.type} message={toast.message} onClose={hideToast} />}
       <ConfirmModal open={confirmDelete !== null} title="Excluir escola" description="A escola será excluída permanentemente." confirmLabel="Excluir" onConfirm={() => confirmDelete && handleDelete(confirmDelete)} onCancel={() => setConfirmDelete(null)} />
 
@@ -111,6 +118,7 @@ export function EscolasScreen() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50/50">
@@ -136,6 +144,7 @@ export function EscolasScreen() {
             ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

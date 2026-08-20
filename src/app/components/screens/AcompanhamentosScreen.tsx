@@ -8,9 +8,10 @@ import type { Screen } from "../layout/Sidebar";
 
 interface AcompanhamentosScreenProps {
   onNavigate: (screen: Screen, data?: unknown) => void;
+  searchQuery?: string;
 }
 
-export function AcompanhamentosScreen({ onNavigate }: AcompanhamentosScreenProps) {
+export function AcompanhamentosScreen({ onNavigate, searchQuery = "" }: AcompanhamentosScreenProps) {
   const [items, setItems] = useState<Acompanhamento[]>(mockAcompanhamentos);
   const [search, setSearch] = useState("");
   const [filterProfissional, setFilterProfissional] = useState("");
@@ -19,11 +20,18 @@ export function AcompanhamentosScreen({ onNavigate }: AcompanhamentosScreenProps
   const [viewItem, setViewItem] = useState<Acompanhamento | null>(null);
   const { toast, showToast, hideToast } = useToast();
 
-  const filtered = items.filter(a =>
-    a.situacao !== "DELETADO" &&
-    (!search || a.aluno.toLowerCase().includes(search.toLowerCase()) || a.resumo.toLowerCase().includes(search.toLowerCase())) &&
-    (!filterProfissional || a.profissional === filterProfissional) &&
-    (!filterTurma || a.turma === filterTurma)
+  const effectiveSearch = (search || searchQuery).trim().toLowerCase();
+
+  const filtered = items.filter(
+    a =>
+      a.situacao !== "DELETADO" &&
+      (!effectiveSearch ||
+        a.aluno.toLowerCase().includes(effectiveSearch) ||
+        a.resumo.toLowerCase().includes(effectiveSearch) ||
+        a.profissional.toLowerCase().includes(effectiveSearch) ||
+        a.turma.toLowerCase().includes(effectiveSearch)) &&
+      (!filterProfissional || a.profissional === filterProfissional) &&
+      (!filterTurma || a.turma === filterTurma)
   );
 
   const profissionais = [...new Set(mockAcompanhamentos.map(a => a.profissional))];
@@ -38,7 +46,7 @@ export function AcompanhamentosScreen({ onNavigate }: AcompanhamentosScreenProps
   const fmt = (d: string) => new Date(d + "T00:00:00").toLocaleDateString("pt-BR");
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-4 lg:p-6 space-y-5">
       {toast && <Toast type={toast.type} message={toast.message} onClose={hideToast} />}
       <ConfirmModal open={confirmDelete !== null} title="Excluir acompanhamento" description="Este registro será removido definitivamente." confirmLabel="Excluir" onConfirm={() => confirmDelete && handleDelete(confirmDelete)} onCancel={() => setConfirmDelete(null)} />
 
@@ -100,6 +108,7 @@ export function AcompanhamentosScreen({ onNavigate }: AcompanhamentosScreenProps
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50/50">
@@ -132,6 +141,7 @@ export function AcompanhamentosScreen({ onNavigate }: AcompanhamentosScreenProps
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

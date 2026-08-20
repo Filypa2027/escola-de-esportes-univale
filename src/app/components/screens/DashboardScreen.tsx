@@ -18,8 +18,19 @@ const activityColors: Record<string, string> = {
   book: "bg-purple-50",
 };
 
-export function DashboardScreen() {
+interface DashboardScreenProps {
+  searchQuery?: string;
+}
+
+export function DashboardScreen({ searchQuery = "" }: DashboardScreenProps) {
   const d = mockDashboard;
+  const q = searchQuery.trim().toLowerCase();
+
+  const filteredAtividades = d.ultimasAtividades.filter(
+    act => !q || act.descricao.toLowerCase().includes(q) || act.usuario.toLowerCase().includes(q) || act.tipo.toLowerCase().includes(q)
+  );
+  const filteredModalidades = q ? d.alunosPorModalidade.filter(m => m.name.toLowerCase().includes(q)) : d.alunosPorModalidade;
+  const filteredFrequencias = q ? d.frequenciaPorTurma.filter(f => f.turma.toLowerCase().includes(q)) : d.frequenciaPorTurma;
 
   const statCards = [
     { label: "Total de Alunos", value: d.totalAlunos, icon: <Users className="w-5 h-5" />, color: "text-blue-600", bg: "bg-blue-50", trend: "+8 este mês" },
@@ -30,7 +41,7 @@ export function DashboardScreen() {
   ];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 lg:p-6 space-y-6">
       {/* Header */}
       <div>
         <h1 className="text-gray-900">Visão Geral</h1>
@@ -61,8 +72,8 @@ export function DashboardScreen() {
           <p className="text-xs text-gray-400 mb-4">Distribuição atual</p>
           <ResponsiveContainer width="100%" height={180}>
             <PieChart>
-              <Pie data={d.alunosPorModalidade} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" paddingAngle={3}>
-                {d.alunosPorModalidade.map((_, i) => (
+              <Pie data={filteredModalidades} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" paddingAngle={3}>
+                {filteredModalidades.map((_, i) => (
                   <Cell key={i} fill={COLORS[i % COLORS.length]} />
                 ))}
               </Pie>
@@ -70,7 +81,7 @@ export function DashboardScreen() {
             </PieChart>
           </ResponsiveContainer>
           <div className="grid grid-cols-2 gap-1 mt-2">
-            {d.alunosPorModalidade.map((m, i) => (
+            {filteredModalidades.map((m, i) => (
               <div key={m.name} className="flex items-center gap-1.5 text-xs text-gray-600">
                 <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
                 {m.name} <span className="text-gray-400">({m.value})</span>
@@ -84,7 +95,7 @@ export function DashboardScreen() {
           <h3 className="text-gray-800 mb-1">Frequência por Turma</h3>
           <p className="text-xs text-gray-400 mb-4">Percentual — Junho 2026</p>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={d.frequenciaPorTurma} layout="vertical" margin={{ left: 0, right: 20 }}>
+            <BarChart data={filteredFrequencias} layout="vertical" margin={{ left: 0, right: 20 }}>
               <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f0f0f0" />
               <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11, fill: "#9ca3af" }} />
               <YAxis type="category" dataKey="turma" tick={{ fontSize: 11, fill: "#6b7280" }} width={80} />
@@ -115,25 +126,29 @@ export function DashboardScreen() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="text-gray-800">Últimas Atividades</h3>
-            <p className="text-xs text-gray-400 mt-0.5">Ações realizadas recentemente no sistema</p>
+            <p className="text-xs text-gray-400 mt-0.5">{filteredAtividades.length} atividade{filteredAtividades.length !== 1 ? "s" : ""}</p>
           </div>
         </div>
         <div className="space-y-3">
-          {d.ultimasAtividades.map((act, i) => (
-            <div key={i} className="flex items-center gap-3 py-2.5 border-b border-gray-50 last:border-0">
-              <div className={`w-8 h-8 rounded-lg ${activityColors[act.icon]} flex items-center justify-center flex-shrink-0`}>
-                {activityIcons[act.icon]}
+          {filteredAtividades.length === 0 ? (
+            <div className="text-center py-6 text-gray-400 text-sm">Nenhuma atividade encontrada{searchQuery ? ` para "${searchQuery}"` : ""}.</div>
+          ) : (
+            filteredAtividades.map((act, i) => (
+              <div key={i} className="flex items-center gap-3 py-2.5 border-b border-gray-50 last:border-0">
+                <div className={`w-8 h-8 rounded-lg ${activityColors[act.icon]} flex items-center justify-center flex-shrink-0`}>
+                  {activityIcons[act.icon]}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm text-gray-800 font-medium truncate">{act.descricao}</div>
+                  <div className="text-xs text-gray-400">{act.usuario}</div>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <span className="text-xs px-2 py-0.5 bg-gray-50 text-gray-500 rounded-full">{act.tipo}</span>
+                  <span className="text-xs text-gray-400">{act.tempo}</span>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm text-gray-800 font-medium truncate">{act.descricao}</div>
-                <div className="text-xs text-gray-400">{act.usuario}</div>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <span className="text-xs px-2 py-0.5 bg-gray-50 text-gray-500 rounded-full">{act.tipo}</span>
-                <span className="text-xs text-gray-400">{act.tempo}</span>
-              </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>

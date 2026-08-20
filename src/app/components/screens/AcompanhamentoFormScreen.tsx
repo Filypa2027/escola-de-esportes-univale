@@ -43,7 +43,7 @@ export function AcompanhamentoFormScreen({ onNavigate }: AcompanhamentoFormScree
     `w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 bg-gray-50 transition-all ${errors[f] ? "border-red-300 bg-red-50/50" : "border-gray-200"}`;
 
   return (
-    <div className="p-6 max-w-3xl">
+    <div className="p-4 lg:p-6 max-w-3xl">
       {toast && <Toast type={toast.type} message={toast.message} onClose={hideToast} />}
 
       <div className="flex items-center gap-3 mb-6">

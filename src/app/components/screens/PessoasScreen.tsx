@@ -8,9 +8,10 @@ import type { Screen } from "../layout/Sidebar";
 
 interface PessoasScreenProps {
   onNavigate: (screen: Screen, data?: unknown) => void;
+  searchQuery?: string;
 }
 
-export function PessoasScreen({ onNavigate }: PessoasScreenProps) {
+export function PessoasScreen({ onNavigate, searchQuery = "" }: PessoasScreenProps) {
   const [pessoas, setPessoas] = useState<Person[]>(mockPessoas);
   const [search, setSearch] = useState("");
   const [filterCategoria, setFilterCategoria] = useState("");
@@ -20,9 +21,20 @@ export function PessoasScreen({ onNavigate }: PessoasScreenProps) {
   const [confirmInativar, setConfirmInativar] = useState<number | null>(null);
   const { toast, showToast, hideToast } = useToast();
 
+  const effectiveSearch = (search || searchQuery).trim().toLowerCase();
+
   const filtered = pessoas.filter(p => {
     if (p.situacao === "DELETADO") return false;
-    if (search && !p.nome.toLowerCase().includes(search.toLowerCase()) && !p.cpf.includes(search)) return false;
+    if (
+      effectiveSearch &&
+      !p.nome.toLowerCase().includes(effectiveSearch) &&
+      !p.cpf.includes(effectiveSearch) &&
+      !p.escola.toLowerCase().includes(effectiveSearch) &&
+      !p.categoria.toLowerCase().includes(effectiveSearch) &&
+      !p.email.toLowerCase().includes(effectiveSearch) &&
+      !p.telefone.includes(effectiveSearch)
+    )
+      return false;
     if (filterCategoria && p.categoria !== filterCategoria) return false;
     if (filterEscola && p.escola !== filterEscola) return false;
     if (filterSituacao && p.situacao !== filterSituacao) return false;
@@ -47,7 +59,7 @@ export function PessoasScreen({ onNavigate }: PessoasScreenProps) {
   const toInativar = confirmInativar ? pessoas.find(p => p.id === confirmInativar) : null;
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-4 lg:p-6 space-y-5">
       {toast && <Toast type={toast.type} message={toast.message} onClose={hideToast} />}
       <ConfirmModal
         open={confirmDelete !== null}

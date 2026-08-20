@@ -22,6 +22,8 @@ interface NavGroup {
 interface SidebarProps {
   currentScreen: Screen;
   onNavigate: (screen: Screen) => void;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 const navGroups: NavGroup[] = [
@@ -56,18 +58,19 @@ const navGroups: NavGroup[] = [
   },
 ];
 
-export function Sidebar({ currentScreen, onNavigate }: SidebarProps) {
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({
-    Cadastros: true, Esportes: true, Operacional: true,
-  });
-
-  const toggle = (label: string) => setExpanded(prev => ({ ...prev, [label]: !prev[label] }));
-
-  const isInGroup = (group: NavGroup) => group.children.some(c => c.screen === currentScreen);
-
+function SidebarContent({
+  currentScreen,
+  onNavigate,
+  expanded,
+  toggle,
+}: {
+  currentScreen: Screen;
+  onNavigate: (screen: Screen) => void;
+  expanded: Record<string, boolean>;
+  toggle: (label: string) => void;
+}) {
   return (
-    <aside className="w-64 h-screen flex flex-col flex-shrink-0" style={{ background: "#0F4C81" }}>
-      {/* Logo */}
+    <>
       <div className="px-5 py-5 border-b border-white/10">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-white/15 flex items-center justify-center">
@@ -80,16 +83,13 @@ export function Sidebar({ currentScreen, onNavigate }: SidebarProps) {
         </div>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-        {/* Dashboard */}
+      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 scrollbar-none [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <button
           onClick={() => onNavigate("dashboard")}
-          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all ${
-            currentScreen === "dashboard"
+          className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all ${currentScreen === "dashboard"
               ? "bg-white/15 text-white font-medium"
               : "text-white/70 hover:bg-white/10 hover:text-white"
-          }`}
+            }`}
         >
           <LayoutDashboard className="w-4 h-4" />
           Dashboard
@@ -114,11 +114,10 @@ export function Sidebar({ currentScreen, onNavigate }: SidebarProps) {
                   <button
                     key={item.screen}
                     onClick={() => onNavigate(item.screen)}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all ${
-                      currentScreen === item.screen || (item.screen === "pessoas" && currentScreen === "pessoa-form") || (item.screen === "acompanhamentos" && currentScreen === "acompanhamento-form")
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all ${currentScreen === item.screen || (item.screen === "pessoas" && currentScreen === "pessoa-form") || (item.screen === "acompanhamentos" && currentScreen === "acompanhamento-form")
                         ? "bg-white/15 text-white font-medium"
                         : "text-white/70 hover:bg-white/10 hover:text-white"
-                    }`}
+                      }`}
                   >
                     {item.icon}
                     {item.label}
@@ -132,39 +131,61 @@ export function Sidebar({ currentScreen, onNavigate }: SidebarProps) {
         <div className="mt-4 pt-3 border-t border-white/10 space-y-0.5">
           <button
             onClick={() => onNavigate("relatorios")}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all ${
-              currentScreen === "relatorios" ? "bg-white/15 text-white font-medium" : "text-white/70 hover:bg-white/10 hover:text-white"
-            }`}
+            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all ${currentScreen === "relatorios" ? "bg-white/15 text-white font-medium" : "text-white/70 hover:bg-white/10 hover:text-white"
+              }`}
           >
             <BarChart3 className="w-4 h-4" />
             Relatórios
           </button>
           <button
             onClick={() => onNavigate("configuracoes")}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all ${
-              currentScreen === "configuracoes" ? "bg-white/15 text-white font-medium" : "text-white/70 hover:bg-white/10 hover:text-white"
-            }`}
+            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all ${currentScreen === "configuracoes" ? "bg-white/15 text-white font-medium" : "text-white/70 hover:bg-white/10 hover:text-white"
+              }`}
           >
             <Settings className="w-4 h-4" />
             Configurações
           </button>
         </div>
       </nav>
+    </>
+  );
+}
 
-      {/* User */}
-      <div className="px-4 py-4 border-t border-white/10">
-        <div className="flex items-center gap-3">
-          <img
-            src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTZCyKxHiNSoB9jD5IFWq2IJjkJ53TL5J3kNg&s"
-            alt="Cleber Siman"
-            className="w-8 h-8 rounded-full object-cover ring-2 ring-white/20"
+export function Sidebar({ currentScreen, onNavigate, mobileOpen = false, onMobileClose }: SidebarProps) {
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({
+    Cadastros: true, Esportes: true, Operacional: true,
+  });
+
+  const toggle = (label: string) => setExpanded(prev => ({ ...prev, [label]: !prev[label] }));
+
+  const handleNavigate = (screen: Screen) => {
+    onNavigate(screen);
+    onMobileClose?.();
+  };
+
+  const contentProps = { currentScreen, onNavigate: handleNavigate, expanded, toggle };
+
+  return (
+    <>
+      <aside className="hidden lg:flex w-64 h-screen flex-col flex-shrink-0" style={{ background: "#0F4C81" }}>
+        <SidebarContent {...contentProps} />
+      </aside>
+
+      {mobileOpen && (
+        <>
+          <div
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={onMobileClose}
+            aria-hidden="true"
           />
-          <div className="flex-1 min-w-0">
-            <div className="text-white text-xs font-medium truncate">Cleber Siman</div>
-            <div className="text-white/40 text-[11px] truncate">Coordenador</div>
-          </div>
-        </div>
-      </div>
-    </aside>
+          <aside
+            className="fixed inset-y-0 left-0 z-50 w-64 h-screen flex flex-col lg:hidden"
+            style={{ background: "#0F4C81" }}
+          >
+            <SidebarContent {...contentProps} />
+          </aside>
+        </>
+      )}
+    </>
   );
 }

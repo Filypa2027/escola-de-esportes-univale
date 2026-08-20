@@ -3,7 +3,11 @@ import { CheckSquare, Save, BarChart2 } from "lucide-react";
 import { Toast, useToast } from "../shared/Toast";
 import { mockFrequencia } from "../data/mockData";
 
-export function FrequenciaScreen() {
+interface FrequenciaScreenProps {
+  searchQuery?: string;
+}
+
+export function FrequenciaScreen({ searchQuery = "" }: FrequenciaScreenProps) {
   const [periodo, setPeriodo] = useState("2026/1°");
   const [modalidade, setModalidade] = useState("Futebol");
   const [turma, setTurma] = useState("Futebol Sub-12 A");
@@ -11,6 +15,9 @@ export function FrequenciaScreen() {
   const [alunos, setAlunos] = useState(mockFrequencia.alunos);
   const [saved, setSaved] = useState(false);
   const { toast, showToast, hideToast } = useToast();
+
+  const q = searchQuery.trim().toLowerCase();
+  const displayedAlunos = alunos.filter(a => !q || a.nome.toLowerCase().includes(q));
 
   const togglePresenca = (id: number) => {
     setSaved(false);
@@ -26,7 +33,7 @@ export function FrequenciaScreen() {
   const pct = Math.round((totalPresentes / alunos.length) * 100);
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-4 lg:p-6 space-y-5">
       {toast && <Toast type={toast.type} message={toast.message} onClose={hideToast} />}
 
       <div>
@@ -89,7 +96,10 @@ export function FrequenciaScreen() {
           </div>
 
           <div className="divide-y divide-gray-50">
-            {alunos.map((aluno, idx) => (
+            {displayedAlunos.length === 0 ? (
+              <div className="text-center py-8 text-gray-400 text-sm">Nenhum aluno encontrado{searchQuery ? ` para "${searchQuery}"` : ""}.</div>
+            ) : (
+              displayedAlunos.map((aluno, idx) => (
               <div key={aluno.id} className={`flex items-center gap-4 px-5 py-3 transition-colors ${aluno.presente ? "hover:bg-green-50/30" : "hover:bg-red-50/20"}`}>
                 <span className="text-xs text-gray-300 w-5 text-right">{idx + 1}</span>
                 <div className="flex-1 text-sm font-medium text-gray-800">{aluno.nome}</div>
@@ -105,7 +115,7 @@ export function FrequenciaScreen() {
                   </button>
                 </div>
               </div>
-            ))}
+            )))}
           </div>
 
           <div className="px-5 py-4 border-t border-gray-100 flex items-center justify-between">

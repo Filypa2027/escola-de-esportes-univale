@@ -20,7 +20,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
   return (
     <div className="min-h-screen flex">
       {/* Left: Form */}
-      <div className="w-full lg:w-[480px] flex flex-col justify-center px-10 py-12 bg-white">
+      <div className="w-full lg:w-[480px] flex flex-col justify-center px-6 sm:px-10 py-12 bg-white">
         <div className="max-w-sm w-full mx-auto">
           {/* Logo */}
           <div className="flex items-center gap-3 mb-10">

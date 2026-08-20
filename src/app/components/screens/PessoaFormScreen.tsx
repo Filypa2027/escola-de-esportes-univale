@@ -61,7 +61,7 @@ export function PessoaFormScreen({ onNavigate, editData }: PessoaFormScreenProps
     `w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 bg-gray-50 transition-all ${errors[field] ? "border-red-300 bg-red-50" : "border-gray-200"}`;
 
   return (
-    <div className="p-6 max-w-4xl">
+    <div className="p-4 lg:p-6 max-w-4xl">
       {toast && <Toast type={toast.type} message={toast.message} onClose={hideToast} />}
 
       {/* Header */}

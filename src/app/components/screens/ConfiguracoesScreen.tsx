@@ -2,7 +2,11 @@ import { useState } from "react";
 import { Save, Bell, Shield, Palette, Database } from "lucide-react";
 import { Toast, useToast } from "../shared/Toast";
 
-export function ConfiguracoesScreen() {
+interface ConfiguracoesScreenProps {
+  searchQuery?: string;
+}
+
+export function ConfiguracoesScreen({ searchQuery = "" }: ConfiguracoesScreenProps) {
   const { toast, showToast, hideToast } = useToast();
   const [activeTab, setActiveTab] = useState("perfil");
 
@@ -28,7 +32,7 @@ export function ConfiguracoesScreen() {
   ];
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-4 lg:p-6 space-y-5">
       {toast && <Toast type={toast.type} message={toast.message} onClose={hideToast} />}
 
       <div>
@@ -36,9 +40,8 @@ export function ConfiguracoesScreen() {
         <p className="text-sm text-gray-500 mt-0.5">Gerencie suas preferências e configurações do sistema</p>
       </div>
 
-      <div className="flex gap-5">
-        {/* Tabs sidebar */}
-        <div className="w-48 flex-shrink-0">
+      <div className="flex flex-col lg:flex-row gap-5">
+        <div className="w-full lg:w-48 flex-shrink-0">
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-2 space-y-0.5">
             {tabs.map(tab => (
               <button
@@ -53,8 +56,7 @@ export function ConfiguracoesScreen() {
           </div>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+        <div className="flex-1 bg-white rounded-xl border border-gray-100 shadow-sm p-4 lg:p-6">
           {activeTab === "perfil" && (
             <div>
               <h2 className="text-gray-800 mb-5 pb-4 border-b border-gray-100">Dados do Perfil</h2>

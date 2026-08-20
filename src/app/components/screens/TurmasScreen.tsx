@@ -5,7 +5,11 @@ import { ConfirmModal } from "../shared/ConfirmModal";
 import { Toast, useToast } from "../shared/Toast";
 import { mockTurmas, type Turma, type Status } from "../data/mockData";
 
-export function TurmasScreen() {
+interface TurmasScreenProps {
+  searchQuery?: string;
+}
+
+export function TurmasScreen({ searchQuery = "" }: TurmasScreenProps) {
   const [turmas, setTurmas] = useState<Turma[]>(mockTurmas);
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -14,7 +18,17 @@ export function TurmasScreen() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { toast, showToast, hideToast } = useToast();
 
-  const active = turmas.filter(t => t.situacao !== "DELETADO");
+  const q = searchQuery.trim().toLowerCase();
+  const active = turmas.filter(
+    t =>
+      t.situacao !== "DELETADO" &&
+      (!q ||
+        t.nome.toLowerCase().includes(q) ||
+        t.modalidade.toLowerCase().includes(q) ||
+        t.periodoLetivo.toLowerCase().includes(q) ||
+        t.diaSemana.toLowerCase().includes(q) ||
+        t.horario.toLowerCase().includes(q))
+  );
 
   const openNew = () => { setEditItem(null); setForm({ nome: "", modalidade: "", periodoLetivo: "", horario: "", diaSemana: "", situacao: "ATIVO" }); setErrors({}); setShowForm(true); };
   const openEdit = (t: Turma) => { setEditItem(t); setForm({ nome: t.nome, modalidade: t.modalidade, periodoLetivo: t.periodoLetivo, horario: t.horario, diaSemana: t.diaSemana, situacao: t.situacao }); setErrors({}); setShowForm(true); };
@@ -44,14 +58,14 @@ export function TurmasScreen() {
   const inputClass = (f: string) => `w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 bg-gray-50 ${errors[f] ? "border-red-300" : "border-gray-200"}`;
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-4 lg:p-6 space-y-5">
       {toast && <Toast type={toast.type} message={toast.message} onClose={hideToast} />}
       <ConfirmModal open={confirmDelete !== null} title="Excluir turma" description="A turma será excluída permanentemente." confirmLabel="Excluir" onConfirm={() => confirmDelete && handleDelete(confirmDelete)} onCancel={() => setConfirmDelete(null)} />
 
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-gray-900">Turmas</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{active.length} turma{active.length !== 1 ? "s" : ""} cadastrada{active.length !== 1 ? "s" : ""}</p>
+          <p className="text-sm text-gray-500 mt-0.5">{active.length} turma{active.length !== 1 ? "s" : ""} encontrada{active.length !== 1 ? "s" : ""}</p>
         </div>
         <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90" style={{ background: "#0F4C81" }}>
           <Plus className="w-4 h-4" /> Nova Turma
@@ -59,6 +73,7 @@ export function TurmasScreen() {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50/50">
@@ -72,31 +87,36 @@ export function TurmasScreen() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {active.map(t => (
-              <tr key={t.id} className="hover:bg-gray-50/50 transition-colors">
-                <td className="px-4 py-3 text-sm font-medium text-gray-800">{t.nome}</td>
-                <td className="px-4 py-3">
-                  <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-md font-medium">{t.modalidade}</span>
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-600">{t.periodoLetivo}</td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-1.5 text-sm text-gray-600">
-                    <Clock className="w-3.5 h-3.5 text-gray-400" />
-                    {t.horario}
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-500">{t.diaSemana}</td>
-                <td className="px-4 py-3"><StatusBadge status={t.situacao} /></td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-1 justify-end">
-                    <button onClick={() => openEdit(t)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => setConfirmDelete(t.id)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {active.length === 0 ? (
+              <tr><td colSpan={7} className="text-center py-10 text-gray-400 text-sm">Nenhuma turma encontrada{searchQuery ? ` para "${searchQuery}"` : ""}.</td></tr>
+            ) : (
+              active.map(t => (
+                <tr key={t.id} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="px-4 py-3 text-sm font-medium text-gray-800">{t.nome}</td>
+                  <td className="px-4 py-3">
+                    <span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-md font-medium">{t.modalidade}</span>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-600">{t.periodoLetivo}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1.5 text-sm text-gray-600">
+                      <Clock className="w-3.5 h-3.5 text-gray-400" />
+                      {t.horario}
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-sm text-gray-500">{t.diaSemana}</td>
+                  <td className="px-4 py-3"><StatusBadge status={t.situacao} /></td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1 justify-end">
+                      <button onClick={() => openEdit(t)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => setConfirmDelete(t.id)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {showForm && (

@@ -4,16 +4,26 @@ import { StatusBadge } from "../shared/StatusBadge";
 import { Toast, useToast } from "../shared/Toast";
 import { mockPessoas, mockTurmas, mockMatriculas, type Matricula } from "../data/mockData";
 
-export function MatriculasScreen() {
+interface MatriculasScreenProps {
+  searchQuery?: string;
+}
+
+export function MatriculasScreen({ searchQuery = "" }: MatriculasScreenProps) {
   const [search, setSearch] = useState("");
   const [selectedAluno, setSelectedAluno] = useState<typeof mockPessoas[0] | null>(null);
   const [matriculas, setMatriculas] = useState<Matricula[]>(mockMatriculas);
   const [selectedTurma, setSelectedTurma] = useState<number | null>(null);
   const { toast, showToast, hideToast } = useToast();
 
+  const effectiveSearch = (search || searchQuery).trim().toLowerCase();
+
   const alunos = mockPessoas.filter(p => p.categoria === "Aluno" && p.situacao === "ATIVO");
-  const filteredAlunos = alunos.filter(a =>
-    !search || a.nome.toLowerCase().includes(search.toLowerCase()) || a.cpf.includes(search)
+  const filteredAlunos = alunos.filter(
+    a =>
+      !effectiveSearch ||
+      a.nome.toLowerCase().includes(effectiveSearch) ||
+      a.cpf.includes(effectiveSearch) ||
+      a.escola.toLowerCase().includes(effectiveSearch)
   );
 
   const turmasAtivas = mockTurmas.filter(t => t.situacao === "ATIVO");
@@ -50,7 +60,7 @@ export function MatriculasScreen() {
   const fmt = (d: string) => new Date(d + "T00:00:00").toLocaleDateString("pt-BR");
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-4 lg:p-6 space-y-5">
       {toast && <Toast type={toast.type} message={toast.message} onClose={hideToast} />}
 
       <div>
@@ -185,6 +195,7 @@ export function MatriculasScreen() {
             <ClipboardList className="w-4 h-4 text-gray-400" /> Todas as Matrículas
           </h3>
         </div>
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50/50">
@@ -196,17 +207,27 @@ export function MatriculasScreen() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {matriculas.filter(m => m.situacao !== "DELETADO").map(m => (
-              <tr key={m.id} className="hover:bg-gray-50/50 transition-colors">
-                <td className="px-4 py-3 text-sm font-medium text-gray-800">{m.aluno}</td>
-                <td className="px-4 py-3 text-sm text-gray-600">{m.turma}</td>
-                <td className="px-4 py-3"><span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-md font-medium">{m.modalidade}</span></td>
-                <td className="px-4 py-3 text-sm text-gray-500">{fmt(m.dataMatricula)}</td>
-                <td className="px-4 py-3"><StatusBadge status={m.situacao} /></td>
-              </tr>
-            ))}
+            {matriculas
+              .filter(
+                m =>
+                  m.situacao !== "DELETADO" &&
+                  (!effectiveSearch ||
+                    m.aluno.toLowerCase().includes(effectiveSearch) ||
+                    m.turma.toLowerCase().includes(effectiveSearch) ||
+                    m.modalidade.toLowerCase().includes(effectiveSearch))
+              )
+              .map(m => (
+                <tr key={m.id} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="px-4 py-3 text-sm font-medium text-gray-800">{m.aluno}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600">{m.turma}</td>
+                  <td className="px-4 py-3"><span className="text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded-md font-medium">{m.modalidade}</span></td>
+                  <td className="px-4 py-3 text-sm text-gray-500">{fmt(m.dataMatricula)}</td>
+                  <td className="px-4 py-3"><StatusBadge status={m.situacao} /></td>
+                </tr>
+              ))}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

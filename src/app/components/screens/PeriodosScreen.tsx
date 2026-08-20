@@ -5,7 +5,11 @@ import { ConfirmModal } from "../shared/ConfirmModal";
 import { Toast, useToast } from "../shared/Toast";
 import { mockPeriodos, type AcademicPeriod, type Status } from "../data/mockData";
 
-export function PeriodosScreen() {
+interface PeriodosScreenProps {
+  searchQuery?: string;
+}
+
+export function PeriodosScreen({ searchQuery = "" }: PeriodosScreenProps) {
   const [periodos, setPeriodos] = useState<AcademicPeriod[]>(mockPeriodos);
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -14,7 +18,10 @@ export function PeriodosScreen() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const { toast, showToast, hideToast } = useToast();
 
-  const active = periodos.filter(p => p.situacao !== "DELETADO");
+  const q = searchQuery.trim().toLowerCase();
+  const active = periodos.filter(
+    p => p.situacao !== "DELETADO" && (!q || p.anoSemestre.toLowerCase().includes(q) || p.dataInicio.includes(q) || p.dataFim.includes(q))
+  );
 
   const openNew = () => { setEditItem(null); setForm({ anoSemestre: "", dataInicio: "", dataFim: "", situacao: "ATIVO" }); setErrors({}); setShowForm(true); };
   const openEdit = (p: AcademicPeriod) => { setEditItem(p); setForm({ anoSemestre: p.anoSemestre, dataInicio: p.dataInicio, dataFim: p.dataFim, situacao: p.situacao }); setErrors({}); setShowForm(true); };
@@ -46,51 +53,58 @@ export function PeriodosScreen() {
   const inputClass = (f: string) => `w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 bg-gray-50 ${errors[f] ? "border-red-300" : "border-gray-200"}`;
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-4 lg:p-6 space-y-5">
       {toast && <Toast type={toast.type} message={toast.message} onClose={hideToast} />}
       <ConfirmModal open={confirmDelete !== null} title="Excluir período" description="O período letivo será removido." confirmLabel="Excluir" onConfirm={() => confirmDelete && handleDelete(confirmDelete)} onCancel={() => setConfirmDelete(null)} />
 
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-gray-900">Períodos Letivos</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{active.length} período{active.length !== 1 ? "s" : ""} cadastrado{active.length !== 1 ? "s" : ""}</p>
+          <p className="text-sm text-gray-500 mt-0.5">{active.length} período{active.length !== 1 ? "s" : ""} encontrado{active.length !== 1 ? "s" : ""}</p>
         </div>
         <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90" style={{ background: "#0F4C81" }}>
           <Plus className="w-4 h-4" /> Novo Período
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {active.map(p => (
-          <div key={p.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                  <CalendarDays className="w-4 h-4 text-blue-600" />
+      {active.length === 0 ? (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center text-gray-400 text-sm">
+          Nenhum período encontrado{searchQuery ? ` para "${searchQuery}"` : ""}.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {active.map(p => (
+            <div key={p.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                    <CalendarDays className="w-4 h-4 text-blue-600" />
+                  </div>
+                  <span className="font-semibold text-gray-800">{p.anoSemestre}</span>
                 </div>
-                <span className="font-semibold text-gray-800">{p.anoSemestre}</span>
+                <StatusBadge status={p.situacao} size="sm" />
               </div>
-              <StatusBadge status={p.situacao} size="sm" />
-            </div>
-            <div className="text-xs text-gray-500 space-y-1 mt-3">
-              <div className="flex justify-between">
-                <span>Início:</span>
-                <span className="font-medium text-gray-700">{fmt(p.dataInicio)}</span>
+              <div className="text-xs text-gray-500 space-y-1 mt-3">
+                <div className="flex justify-between">
+                  <span>Início:</span>
+                  <span className="font-medium text-gray-700">{fmt(p.dataInicio)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Fim:</span>
+                  <span className="font-medium text-gray-700">{fmt(p.dataFim)}</span>
+                </div>
               </div>
-              <div className="flex justify-between">
-                <span>Fim:</span>
-                <span className="font-medium text-gray-700">{fmt(p.dataFim)}</span>
+              <div className="flex gap-2 mt-4 pt-3 border-t border-gray-100">
+                <button onClick={() => openEdit(p)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100"><Edit2 className="w-3.5 h-3.5" /> Editar</button>
+                <button onClick={() => setConfirmDelete(p.id)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100"><Trash2 className="w-3.5 h-3.5" /> Excluir</button>
               </div>
             </div>
-            <div className="flex gap-2 mt-4 pt-3 border-t border-gray-100">
-              <button onClick={() => openEdit(p)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100"><Edit2 className="w-3 h-3" /> Editar</button>
-              <button onClick={() => setConfirmDelete(p.id)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100"><Trash2 className="w-3 h-3" /> Excluir</button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50/50">
@@ -102,22 +116,27 @@ export function PeriodosScreen() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
-            {active.map(p => (
-              <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
-                <td className="px-4 py-3 text-sm font-medium text-gray-800">{p.anoSemestre}</td>
-                <td className="px-4 py-3 text-sm text-gray-600">{fmt(p.dataInicio)}</td>
-                <td className="px-4 py-3 text-sm text-gray-600">{fmt(p.dataFim)}</td>
-                <td className="px-4 py-3"><StatusBadge status={p.situacao} /></td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-1 justify-end">
-                    <button onClick={() => openEdit(p)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => setConfirmDelete(p.id)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {active.length === 0 ? (
+              <tr><td colSpan={5} className="text-center py-8 text-gray-400 text-sm">Nenhum registro encontrado.</td></tr>
+            ) : (
+              active.map(p => (
+                <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
+                  <td className="px-4 py-3 text-sm font-medium text-gray-800">{p.anoSemestre}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600">{fmt(p.dataInicio)}</td>
+                  <td className="px-4 py-3 text-sm text-gray-600">{fmt(p.dataFim)}</td>
+                  <td className="px-4 py-3"><StatusBadge status={p.situacao} /></td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1 justify-end">
+                      <button onClick={() => openEdit(p)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
+                      <button onClick={() => setConfirmDelete(p.id)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
+        </div>
       </div>
 
       {showForm && (
