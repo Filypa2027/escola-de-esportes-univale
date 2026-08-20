@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Bell, Search, ChevronDown, LogOut, Settings, X, Menu } from "lucide-react";
+import { Bell, Search, ChevronDown, LogOut, Settings, X, Menu, ClipboardList, CheckSquare, Heart, FileText } from "lucide-react";
 import type { Screen } from "./Sidebar";
-import { mockModalidades, mockTurmas, mockPessoas } from "../data/mockData";
+import { mockModalidades, mockTurmas, mockPessoas, type NotificationPrefKey } from "../data/mockData";
+import { useNotifications } from "../../theme/NotificationsContext";
 
 const screenTitles: Record<string, string> = {
   dashboard: "Dashboard",
@@ -73,6 +74,20 @@ function getSearchResults(query: string): SearchResult[] {
   return results.slice(0, 12);
 }
 
+const notifIcons: Record<NotificationPrefKey, React.ReactNode> = {
+  novasMatriculas: <ClipboardList className="w-4 h-4" />,
+  frequencia: <CheckSquare className="w-4 h-4" />,
+  acompanhamentos: <Heart className="w-4 h-4" />,
+  relatorios: <FileText className="w-4 h-4" />,
+};
+
+const notifIconClass: Record<NotificationPrefKey, string> = {
+  novasMatriculas: "bg-blue-50 text-blue-600",
+  frequencia: "bg-green-50 text-green-600",
+  acompanhamentos: "bg-pink-50 text-pink-600",
+  relatorios: "bg-amber-50 text-amber-600",
+};
+
 interface HeaderProps {
   currentScreen: string;
   onLogout?: () => void;
@@ -94,8 +109,11 @@ export function Header({
 }: HeaderProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
+  const { items, unreadCount, isRead, markAsRead, markAllAsRead } = useNotifications();
 
   const searchResults = useMemo(() => getSearchResults(searchQuery), [searchQuery]);
 
@@ -106,6 +124,9 @@ export function Header({
       }
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setIsSearchOpen(false);
+      }
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+        setIsNotifOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -210,10 +231,74 @@ export function Header({
           )}
         </div>
 
-        <button className="relative w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-50 transition-colors flex-shrink-0">
-          <Bell className="w-4.5 h-4.5 text-gray-500" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
-        </button>
+        <div className="relative flex-shrink-0" ref={notifRef}>
+          <button
+            type="button"
+            onClick={() => {
+              setIsNotifOpen(prev => !prev);
+              setIsDropdownOpen(false);
+              setIsSearchOpen(false);
+            }}
+            className="relative w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-50 transition-colors"
+            aria-expanded={isNotifOpen}
+            aria-label="Notificações"
+          >
+            <Bell className="w-4.5 h-4.5 text-gray-500" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+            )}
+          </button>
+
+          {isNotifOpen && (
+            <div className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-lg border border-gray-100 z-50">
+              <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-gray-100">
+                <p className="text-sm font-medium text-gray-800">Notificações</p>
+                {unreadCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={markAllAsRead}
+                    className="text-xs font-medium text-blue-600 hover:text-blue-700"
+                  >
+                    Marcar todas como lidas
+                  </button>
+                )}
+              </div>
+              <div className="max-h-80 overflow-y-auto py-1">
+                {items.length === 0 ? (
+                  <p className="px-3.5 py-6 text-sm text-gray-400 text-center">Nenhuma notificação</p>
+                ) : (
+                  items.map(item => {
+                    const read = isRead(item.id);
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => {
+                          markAsRead(item.id);
+                          setIsNotifOpen(false);
+                          onNavigate?.(item.screen);
+                        }}
+                        className={`w-full flex items-start gap-2.5 px-3.5 py-2.5 text-left hover:bg-gray-50 transition-colors ${read ? "opacity-60" : ""}`}
+                      >
+                        <span className={`mt-0.5 w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${notifIconClass[item.type]}`}>
+                          {notifIcons[item.type]}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="flex items-center gap-1.5">
+                            <span className="text-sm font-medium text-gray-800 truncate">{item.title}</span>
+                            {!read && <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />}
+                          </span>
+                          <span className="block text-xs text-gray-500 truncate">{item.description}</span>
+                          <span className="block text-[11px] text-gray-400 mt-0.5">{item.time}</span>
+                        </span>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className="relative pl-2 sm:pl-3 border-l border-gray-100" ref={dropdownRef}>
           <button

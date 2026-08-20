@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Save, Bell, Shield, Palette, Database } from "lucide-react";
 import { Toast, useToast } from "../shared/Toast";
 import { useTheme } from "../../theme/ThemeContext";
+import { useNotifications } from "../../theme/NotificationsContext";
 
 interface ConfiguracoesScreenProps {
   searchQuery?: string;
@@ -10,6 +11,7 @@ interface ConfiguracoesScreenProps {
 export function ConfiguracoesScreen({ searchQuery = "" }: ConfiguracoesScreenProps) {
   const { toast, showToast, hideToast } = useToast();
   const { theme, setTheme, fontSize, setFontSize } = useTheme();
+  const { prefs, setPref } = useNotifications();
   const [activeTab, setActiveTab] = useState("perfil");
 
   const [perfil, setPerfil] = useState({
@@ -17,13 +19,6 @@ export function ConfiguracoesScreen({ searchQuery = "" }: ConfiguracoesScreenPro
     email: "cleber.siman@univale.br",
     cargo: "Coordenador",
     telefone: "(33) 98802-4550",
-  });
-
-  const [notif, setNotif] = useState({
-    novasMatriculas: true,
-    frequencia: true,
-    acompanhamentos: false,
-    relatorios: true,
   });
 
   const tabs = [
@@ -125,10 +120,10 @@ export function ConfiguracoesScreen({ searchQuery = "" }: ConfiguracoesScreenPro
                       <div className="text-xs text-gray-400 mt-0.5">{item.desc}</div>
                     </div>
                     <button
-                      onClick={() => setNotif(n => ({ ...n, [item.key]: !n[item.key] }))}
-                      className={`w-10 h-6 rounded-full transition-all relative ${notif[item.key] ? "bg-blue-600" : "bg-gray-200"}`}
+                      onClick={() => setPref(item.key, !prefs[item.key])}
+                      className={`w-10 h-6 rounded-full transition-all relative ${prefs[item.key] ? "bg-blue-600" : "bg-gray-200"}`}
                     >
-                      <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${notif[item.key] ? "left-5" : "left-1"}`} />
+                      <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${prefs[item.key] ? "left-5" : "left-1"}`} />
                     </button>
                   </div>
                 ))}

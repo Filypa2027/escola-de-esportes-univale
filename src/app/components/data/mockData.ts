@@ -201,3 +201,24 @@ export const mockDashboard = {
     { mes: "Jun", matriculas: 11 },
   ],
 };
+
+export type NotificationPrefKey = "novasMatriculas" | "frequencia" | "acompanhamentos" | "relatorios";
+
+export interface AppNotification {
+  id: number;
+  type: NotificationPrefKey;
+  title: string;
+  description: string;
+  time: string;
+  screen: "matriculas" | "frequencia" | "acompanhamentos" | "relatorios";
+}
+
+export const mockNotifications: AppNotification[] = [
+  { id: 1, type: "frequencia", title: "Chamada registrada", description: "Futebol Sub-12 A — Carlos Lima", time: "há 15 min", screen: "frequencia" },
+  { id: 2, type: "novasMatriculas", title: "Nova matrícula", description: "Isabela Nunes em Basquete Misto", time: "há 42 min", screen: "matriculas" },
+  { id: 3, type: "acompanhamentos", title: "Novo acompanhamento", description: "Sessão psicológica — João Paulo Silva", time: "há 1h", screen: "acompanhamentos" },
+  { id: 4, type: "relatorios", title: "Relatório gerado", description: "Frequência por turma — Jun/2026", time: "há 2h", screen: "relatorios" },
+  { id: 5, type: "novasMatriculas", title: "Nova matrícula", description: "Gabriel Alves em Futsal Sub-10", time: "há 3h", screen: "matriculas" },
+  { id: 6, type: "frequencia", title: "Baixa frequência", description: "Atletismo Iniciante — 78% no mês", time: "há 5h", screen: "frequencia" },
+];
+
