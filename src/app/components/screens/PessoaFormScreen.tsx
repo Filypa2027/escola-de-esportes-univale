@@ -174,7 +174,7 @@ export function PessoaFormScreen({ onNavigate, editData }: PessoaFormScreenProps
           <button type="button" onClick={() => onNavigate("pessoas")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
             <X className="w-4 h-4" /> Cancelar
           </button>
-          <button type="submit" className="flex items-center gap-2 px-5 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90 transition-all" style={{ background: "#0F4C81" }}>
+          <button type="submit" className="flex items-center gap-2 px-5 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90 transition-all" style={{ background: "var(--brand)" }}>
             <Save className="w-4 h-4" /> {isEdit ? "Atualizar" : "Salvar"}
           </button>
         </div>

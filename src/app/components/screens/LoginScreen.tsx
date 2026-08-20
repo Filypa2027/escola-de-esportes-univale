@@ -24,7 +24,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
         <div className="max-w-sm w-full mx-auto">
           {/* Logo */}
           <div className="flex items-center gap-3 mb-10">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "#0F4C81" }}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "var(--brand)" }}>
               <Dumbbell className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -78,7 +78,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
               type="submit"
               disabled={loading}
               className="w-full py-2.5 rounded-lg text-white text-sm font-medium flex items-center justify-center gap-2 transition-all hover:opacity-90 disabled:opacity-70 mt-2"
-              style={{ background: "#0F4C81" }}
+              style={{ background: "var(--brand)" }}
             >
               {loading ? (
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -95,7 +95,7 @@ export function LoginScreen({ onLogin }: LoginScreenProps) {
       </div>
 
       {/* Right: Image */}
-      <div className="hidden lg:flex flex-1 relative overflow-hidden" style={{ background: "#0F4C81" }}>
+      <div className="hidden lg:flex flex-1 relative overflow-hidden" style={{ background: "var(--brand)" }}>
         <img
           src="https://scontent.fcnf1-1.fna.fbcdn.net/v/t1.6435-9/34585017_621676164863757_1104871583752650752_n.jpg?stp=dst-jpg_tt6&cstp=mx960x720&ctp=s960x720&_nc_cat=105&ccb=1-7&_nc_sid=833d8c&_nc_eui2=AeHuEnrrJK4TaN10MHk-oVHH-tpatfJduaX62lq18l25pcYcCYi3p3FOc-orXWz1AHeQXQc9lwtjiupMBCjz0MWQ&_nc_ohc=K81WeRsL1_AQ7kNvwHBuKcn&_nc_oc=Ado5O_ywWWeTVndtBKhWBx29sT7sd9PXrsIIZpNFovy7t2nRLnHdGgIM04or7ytvIBw&_nc_zt=23&_nc_ht=scontent.fcnf1-1.fna&_nc_gid=UmNksqF0epLZwFe2Lhj4ig&_nc_ss=7b2a8&oh=00_Af-EYWO2GeLuDst51gi1ZCXJBx9vfdy7JiLv4PWgCiq2Og&oe=6A53A7CE"
           alt="Esportes"

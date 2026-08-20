@@ -88,7 +88,7 @@ export function PessoasScreen({ onNavigate, searchQuery = "" }: PessoasScreenPro
         <button
           onClick={() => onNavigate("pessoa-form", null)}
           className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90"
-          style={{ background: "#0F4C81" }}
+          style={{ background: "var(--brand)" }}
         >
           <Plus className="w-4 h-4" /> Nova Pessoa
         </button>
@@ -151,7 +151,7 @@ export function PessoasScreen({ onNavigate, searchQuery = "" }: PessoasScreenPro
                 <tr key={p.id} className="hover:bg-gray-50/50 transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0" style={{ background: "#0F4C81" }}>
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0" style={{ background: "var(--brand)" }}>
                         {p.nome.split(" ").slice(0, 2).map(n => n[0]).join("")}
                       </div>
                       <span className="text-sm font-medium text-gray-800">{p.nome}</span>

@@ -85,7 +85,7 @@ export function AcompanhamentosScreen({ onNavigate, searchQuery = "" }: Acompanh
           <h1 className="text-gray-900">Acompanhamentos</h1>
           <p className="text-sm text-gray-500 mt-0.5">{filtered.length} registro{filtered.length !== 1 ? "s" : ""}</p>
         </div>
-        <button onClick={() => onNavigate("acompanhamento-form", null)} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90" style={{ background: "#0F4C81" }}>
+        <button onClick={() => onNavigate("acompanhamento-form", null)} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90" style={{ background: "var(--brand)" }}>
           <Plus className="w-4 h-4" /> Novo Acompanhamento
         </button>
       </div>

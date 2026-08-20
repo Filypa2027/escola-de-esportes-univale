@@ -167,7 +167,7 @@ export function Sidebar({ currentScreen, onNavigate, mobileOpen = false, onMobil
 
   return (
     <>
-      <aside className="hidden lg:flex w-64 h-screen flex-col flex-shrink-0" style={{ background: "#0F4C81" }}>
+      <aside className="hidden lg:flex w-64 h-screen flex-col flex-shrink-0" style={{ background: "var(--brand)" }}>
         <SidebarContent {...contentProps} />
       </aside>
 
@@ -180,7 +180,7 @@ export function Sidebar({ currentScreen, onNavigate, mobileOpen = false, onMobil
           />
           <aside
             className="fixed inset-y-0 left-0 z-50 w-64 h-screen flex flex-col lg:hidden"
-            style={{ background: "#0F4C81" }}
+            style={{ background: "var(--brand)" }}
           >
             <SidebarContent {...contentProps} />
           </aside>

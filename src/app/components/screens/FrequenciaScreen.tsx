@@ -123,7 +123,7 @@ export function FrequenciaScreen({ searchQuery = "" }: FrequenciaScreenProps) {
             <button
               onClick={handleSave}
               className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90 transition-all"
-              style={{ background: "#0F4C81" }}
+              style={{ background: "var(--brand)" }}
             >
               <Save className="w-4 h-4" /> Salvar Chamada
             </button>
@@ -137,7 +137,7 @@ export function FrequenciaScreen({ searchQuery = "" }: FrequenciaScreenProps) {
             <div className="relative w-32 h-32 mx-auto mb-4">
               <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
                 <circle cx="18" cy="18" r="15.9" fill="none" stroke="#f0f0f0" strokeWidth="3" />
-                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#0F4C81" strokeWidth="3" strokeDasharray={`${pct} ${100 - pct}`} strokeLinecap="round" />
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="var(--brand)" strokeWidth="3" strokeDasharray={`${pct} ${100 - pct}`} strokeLinecap="round" />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
                 <span className="text-2xl font-bold text-gray-900">{pct}%</span>

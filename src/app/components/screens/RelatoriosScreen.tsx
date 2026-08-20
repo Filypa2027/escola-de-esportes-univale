@@ -136,7 +136,7 @@ export function RelatoriosScreen({ searchQuery = "" }: RelatoriosScreenProps) {
                 <XAxis dataKey="name" tick={{ fontSize: 11, fill: "#9ca3af" }} />
                 <YAxis tick={{ fontSize: 11, fill: "#9ca3af" }} />
                 <Tooltip />
-                <Bar dataKey="value" fill="#0F4C81" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="value" fill="var(--brand)" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -171,7 +171,7 @@ export function RelatoriosScreen({ searchQuery = "" }: RelatoriosScreenProps) {
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <div className="w-20 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                            <div className="h-full rounded-full" style={{ width: `${pct}%`, background: "#0F4C81" }} />
+                            <div className="h-full rounded-full" style={{ width: `${pct}%`, background: "var(--brand)" }} />
                           </div>
                           <span className="text-xs text-gray-400 w-10 text-right">{pct}%</span>
                         </div>

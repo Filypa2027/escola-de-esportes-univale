@@ -89,7 +89,7 @@ export function MatriculasScreen({ searchQuery = "" }: MatriculasScreenProps) {
                   onClick={() => { setSelectedAluno(a); setSelectedTurma(null); }}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-all ${selectedAluno?.id === a.id ? "bg-blue-50 border border-blue-200" : "hover:bg-gray-50 border border-transparent"}`}
                 >
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0" style={{ background: "#0F4C81" }}>
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white flex-shrink-0" style={{ background: "var(--brand)" }}>
                     {a.nome.split(" ").slice(0, 2).map(n => n[0]).join("")}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -137,7 +137,7 @@ export function MatriculasScreen({ searchQuery = "" }: MatriculasScreenProps) {
                 onClick={handleMatricular}
                 disabled={!selectedTurma}
                 className="w-full mt-4 py-2.5 text-sm font-medium text-white rounded-lg transition-all hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-                style={{ background: "#0F4C81" }}
+                style={{ background: "var(--brand)" }}
               >
                 Realizar Matrícula
               </button>
@@ -151,7 +151,7 @@ export function MatriculasScreen({ searchQuery = "" }: MatriculasScreenProps) {
             <>
               <div className="p-4 border-b border-gray-100">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white" style={{ background: "#0F4C81" }}>
+                  <div className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold text-white" style={{ background: "var(--brand)" }}>
                     {selectedAluno.nome.split(" ").slice(0, 2).map(n => n[0]).join("")}
                   </div>
                   <div>

@@ -1,21 +1,22 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --font-size: 16px;
+  --brand: #0F4C81;
+  --font-size: 14px;
   --background: #F5F7FA;
   --foreground: #1a202c;
   --card: #ffffff;
   --card-foreground: #1a202c;
   --popover: #ffffff;
   --popover-foreground: #1a202c;
-  --primary: #0F4C81;
+  --primary: var(--brand);
   --primary-foreground: #ffffff;
   --secondary: #EAF3FB;
-  --secondary-foreground: #0F4C81;
+  --secondary-foreground: var(--brand);
   --muted: #F5F7FA;
   --muted-foreground: #6B7280;
   --accent: #EAF3FB;
-  --accent-foreground: #0F4C81;
+  --accent-foreground: var(--brand);
   --destructive: #DC2626;
   --destructive-foreground: #ffffff;
   --border: rgba(0, 0, 0, 0.08);
@@ -24,17 +25,17 @@
   --switch-background: #cbced4;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --ring: #0F4C81;
-  --chart-1: #0F4C81;
+  --ring: var(--brand);
+  --chart-1: var(--brand);
   --chart-2: #10B981;
   --chart-3: #F59E0B;
   --chart-4: #6366F1;
   --chart-5: #EC4899;
   --radius: 0.5rem;
-  --sidebar: #0F4C81;
+  --sidebar: var(--brand);
   --sidebar-foreground: #ffffff;
   --sidebar-primary: #ffffff;
-  --sidebar-primary-foreground: #0F4C81;
+  --sidebar-primary-foreground: var(--brand);
   --sidebar-accent: rgba(255,255,255,0.12);
   --sidebar-accent-foreground: #ffffff;
   --sidebar-border: rgba(255,255,255,0.1);
@@ -42,40 +43,41 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
+  --background: #0f172a;
+  --foreground: #f1f5f9;
+  --card: #1e293b;
+  --card-foreground: #f1f5f9;
+  --popover: #1e293b;
+  --popover-foreground: #f1f5f9;
+  --primary: var(--brand);
+  --primary-foreground: #ffffff;
+  --secondary: #1e293b;
+  --secondary-foreground: #f1f5f9;
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8;
+  --accent: #1e293b;
+  --accent-foreground: #f1f5f9;
+  --destructive: #DC2626;
+  --destructive-foreground: #ffffff;
+  --border: #334155;
+  --input: #1e293b;
+  --input-background: #0f172a;
+  --ring: var(--brand);
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  --chart-1: var(--brand);
+  --chart-2: #10B981;
+  --chart-3: #F59E0B;
+  --chart-4: #6366F1;
+  --chart-5: #EC4899;
+  --sidebar: var(--brand);
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #ffffff;
+  --sidebar-primary-foreground: var(--brand);
+  --sidebar-accent: rgba(255,255,255,0.12);
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255,255,255,0.1);
+  --sidebar-ring: rgba(255,255,255,0.3);
 }
 
 @theme inline {
@@ -191,3 +193,58 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark .bg-white {
+  background-color: #1e293b !important;
+}
+html.dark .bg-gray-50,
+html.dark .bg-gray-50\/50 {
+  background-color: #0f172a !important;
+}
+html.dark .bg-gray-100 {
+  background-color: #334155 !important;
+}
+html.dark .hover\:bg-gray-50:hover,
+html.dark .hover\:bg-gray-100:hover {
+  background-color: #334155 !important;
+}
+html.dark .text-gray-900,
+html.dark .text-gray-800 {
+  color: #f1f5f9 !important;
+}
+html.dark .text-gray-700 {
+  color: #e2e8f0 !important;
+}
+html.dark .text-gray-600,
+html.dark .text-gray-500 {
+  color: #94a3b8 !important;
+}
+html.dark .text-gray-400,
+html.dark .text-gray-300 {
+  color: #64748b !important;
+}
+html.dark .border-gray-100,
+html.dark .border-gray-200 {
+  border-color: #334155 !important;
+}
+html.dark .divide-gray-50 > :not([hidden]) ~ :not([hidden]),
+html.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #334155;
+}
+html.dark .bg-blue-50 {
+  background-color: color-mix(in srgb, var(--brand) 22%, #1e293b) !important;
+}
+html.dark .hover\:bg-blue-50:hover,
+html.dark .hover\:bg-blue-100:hover {
+  background-color: color-mix(in srgb, var(--brand) 28%, #1e293b) !important;
+}
+html.dark .shadow-sm,
+html.dark .shadow-lg,
+html.dark .shadow-2xl {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+}
+

@@ -137,7 +137,7 @@ export function AcompanhamentoFormScreen({ onNavigate }: AcompanhamentoFormScree
           <button type="button" onClick={() => onNavigate("acompanhamentos")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50">
             <X className="w-4 h-4" /> Cancelar
           </button>
-          <button type="submit" className="flex items-center gap-2 px-5 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90" style={{ background: "#0F4C81" }}>
+          <button type="submit" className="flex items-center gap-2 px-5 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90" style={{ background: "var(--brand)" }}>
             <Save className="w-4 h-4" /> Salvar Acompanhamento
           </button>
         </div>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Save, Bell, Shield, Palette, Database } from "lucide-react";
 import { Toast, useToast } from "../shared/Toast";
+import { useTheme } from "../../theme/ThemeContext";
 
 interface ConfiguracoesScreenProps {
   searchQuery?: string;
@@ -8,6 +9,7 @@ interface ConfiguracoesScreenProps {
 
 export function ConfiguracoesScreen({ searchQuery = "" }: ConfiguracoesScreenProps) {
   const { toast, showToast, hideToast } = useToast();
+  const { theme, setTheme, fontSize, setFontSize } = useTheme();
   const [activeTab, setActiveTab] = useState("perfil");
 
   const [perfil, setPerfil] = useState({
@@ -100,7 +102,7 @@ export function ConfiguracoesScreen({ searchQuery = "" }: ConfiguracoesScreenPro
                 </div>
               </div>
               <div className="flex justify-end mt-6">
-                <button onClick={() => showToast("success", "Perfil atualizado com sucesso!")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90" style={{ background: "#0F4C81" }}>
+                <button onClick={() => showToast("success", "Perfil atualizado com sucesso!")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90" style={{ background: "var(--brand)" }}>
                   <Save className="w-4 h-4" /> Salvar Alterações
                 </button>
               </div>
@@ -132,7 +134,7 @@ export function ConfiguracoesScreen({ searchQuery = "" }: ConfiguracoesScreenPro
                 ))}
               </div>
               <div className="flex justify-end mt-6">
-                <button onClick={() => showToast("success", "Preferências salvas!")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90" style={{ background: "#0F4C81" }}>
+                <button onClick={() => showToast("success", "Preferências salvas!")} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90" style={{ background: "var(--brand)" }}>
                   <Save className="w-4 h-4" /> Salvar
                 </button>
               </div>
@@ -146,8 +148,15 @@ export function ConfiguracoesScreen({ searchQuery = "" }: ConfiguracoesScreenPro
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3">Tema</label>
                   <div className="flex gap-3">
-                    {["Claro", "Escuro", "Sistema"].map(t => (
-                      <button key={t} className={`px-4 py-2.5 rounded-lg text-sm border transition-all ${t === "Claro" ? "border-blue-500 bg-blue-50 text-blue-700 font-medium" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}>{t}</button>
+                    {(["Claro", "Escuro", "Sistema"] as const).map(t => (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={() => setTheme(t)}
+                        className={`px-4 py-2.5 rounded-lg text-sm border transition-all ${t === theme ? "border-blue-500 bg-blue-50 text-blue-700 font-medium" : "border-gray-200 text-gray-600 hover:bg-gray-50"}`}
+                      >
+                        {t}
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -155,16 +164,15 @@ export function ConfiguracoesScreen({ searchQuery = "" }: ConfiguracoesScreenPro
                   <label className="block text-sm font-medium text-gray-700 mb-3">Tamanho da fonte</label>
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-gray-400">A</span>
-                    <input type="range" min="12" max="20" defaultValue="14" className="flex-1 accent-blue-600" />
+                    <input
+                      type="range"
+                      min="12"
+                      max="20"
+                      value={fontSize}
+                      onChange={e => setFontSize(Number(e.target.value))}
+                      className="flex-1 accent-blue-600"
+                    />
                     <span className="text-lg text-gray-700 font-medium">A</span>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3">Cor de destaque</label>
-                  <div className="flex gap-2">
-                    {["#0F4C81", "#7C3AED", "#059669", "#DC2626", "#D97706"].map(color => (
-                      <button key={color} className={`w-8 h-8 rounded-full border-2 ${color === "#0F4C81" ? "border-gray-800 scale-110" : "border-transparent"} transition-all`} style={{ background: color }} />
-                    ))}
                   </div>
                 </div>
               </div>

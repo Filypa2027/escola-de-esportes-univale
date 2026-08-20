@@ -2,7 +2,7 @@ import { Users, Users2, Trophy, TrendingUp, Heart, CheckCircle, UserPlus, BookOp
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 import { mockDashboard } from "../data/mockData";
 
-const COLORS = ["#0F4C81", "#10B981", "#F59E0B", "#6366F1", "#EC4899", "#14B8A6"];
+const COLORS = ["var(--brand)", "#10B981", "#F59E0B", "#6366F1", "#EC4899", "#14B8A6"];
 
 const activityIcons: Record<string, React.ReactNode> = {
   check: <CheckCircle className="w-4 h-4 text-green-600" />,
@@ -100,7 +100,7 @@ export function DashboardScreen({ searchQuery = "" }: DashboardScreenProps) {
               <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11, fill: "#9ca3af" }} />
               <YAxis type="category" dataKey="turma" tick={{ fontSize: 11, fill: "#6b7280" }} width={80} />
               <Tooltip formatter={(v: number) => [`${v}%`, "Frequência"]} />
-              <Bar dataKey="frequencia" fill="#0F4C81" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="frequencia" fill="var(--brand)" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -115,7 +115,7 @@ export function DashboardScreen({ searchQuery = "" }: DashboardScreenProps) {
               <XAxis dataKey="mes" tick={{ fontSize: 11, fill: "#9ca3af" }} />
               <YAxis tick={{ fontSize: 11, fill: "#9ca3af" }} />
               <Tooltip formatter={(v: number) => [`${v} matrículas`]} />
-              <Line type="monotone" dataKey="matriculas" stroke="#0F4C81" strokeWidth={2} dot={{ fill: "#0F4C81", r: 4 }} activeDot={{ r: 6 }} />
+              <Line type="monotone" dataKey="matriculas" stroke="var(--brand)" strokeWidth={2} dot={{ fill: "var(--brand)", r: 4 }} activeDot={{ r: 6 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>

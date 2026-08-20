@@ -69,7 +69,7 @@ export function ModalidadesScreen({ searchQuery = "" }: ModalidadesScreenProps) 
           <h1 className="text-gray-900">Modalidades Esportivas</h1>
           <p className="text-sm text-gray-500 mt-0.5">{active.length} modalidade{active.length !== 1 ? "s" : ""} encontrada{active.length !== 1 ? "s" : ""}</p>
         </div>
-        <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90" style={{ background: "#0F4C81" }}>
+        <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90" style={{ background: "var(--brand)" }}>
           <Plus className="w-4 h-4" /> Nova Modalidade
         </button>
       </div>
@@ -175,7 +175,7 @@ export function ModalidadesScreen({ searchQuery = "" }: ModalidadesScreenProps) 
             </div>
             <div className="flex gap-3 justify-end mt-6">
               <button onClick={() => setShowForm(false)} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">Cancelar</button>
-              <button onClick={handleSave} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90" style={{ background: "#0F4C81" }}>
+              <button onClick={handleSave} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90" style={{ background: "var(--brand)" }}>
                 <Save className="w-4 h-4" /> Salvar
               </button>
             </div>
