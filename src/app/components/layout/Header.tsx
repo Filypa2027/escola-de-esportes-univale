@@ -118,20 +118,22 @@ export function Header({
   const searchResults = useMemo(() => getSearchResults(searchQuery), [searchQuery]);
 
   useEffect(() => {
+    if (!isNotifOpen && !isDropdownOpen && !isSearchOpen) return;
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      if (isDropdownOpen && dropdownRef.current && !dropdownRef.current.contains(target)) {
         setIsDropdownOpen(false);
       }
-      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+      if (isSearchOpen && searchRef.current && !searchRef.current.contains(target)) {
         setIsSearchOpen(false);
       }
-      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+      if (isNotifOpen && notifRef.current && !notifRef.current.contains(target)) {
         setIsNotifOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [isDropdownOpen, isSearchOpen, isNotifOpen]);
 
   const handleSearchSelect = (result: SearchResult) => {
     onNavigate?.(result.screen);
@@ -154,8 +156,8 @@ export function Header({
   }, {});
 
   return (
-    <header className="h-14 bg-white border-b border-gray-100 flex items-center justify-between gap-3 px-4 lg:px-6 flex-shrink-0">
-      <div className="flex items-center gap-2 min-w-0 flex-1 lg:flex-none">
+    <header className="relative z-30 h-14 bg-white border-b border-gray-100 flex items-center justify-between gap-3 px-4 lg:px-6 flex-shrink-0">
+      <div className="flex items-center gap-2 min-w-0 flex-1 lg:flex-none overflow-hidden">
         <button
           type="button"
           onClick={onSidebarToggle}
@@ -231,26 +233,28 @@ export function Header({
           )}
         </div>
 
-        <div className="relative flex-shrink-0" ref={notifRef}>
+        <div className="relative z-10 flex-shrink-0" ref={notifRef}>
           <button
             type="button"
-            onClick={() => {
+            onMouseDown={e => e.stopPropagation()}
+            onClick={e => {
+              e.stopPropagation();
               setIsNotifOpen(prev => !prev);
               setIsDropdownOpen(false);
               setIsSearchOpen(false);
             }}
-            className="relative w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-50 transition-colors"
+            className="relative z-10 w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
             aria-expanded={isNotifOpen}
             aria-label="Notificações"
           >
-            <Bell className="w-4.5 h-4.5 text-gray-500" />
+            <Bell className="w-4 h-4 text-gray-500 pointer-events-none" />
             {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full pointer-events-none" />
             )}
           </button>
 
           {isNotifOpen && (
-            <div className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-lg border border-gray-100 z-50">
+            <div className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-lg border border-gray-100 z-[60]">
               <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-gray-100">
                 <p className="text-sm font-medium text-gray-800">Notificações</p>
                 {unreadCount > 0 && (
