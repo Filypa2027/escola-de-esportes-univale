@@ -127,7 +127,9 @@ export const mockTurmas: Turma[] = [
 
 export const mockMatriculas: Matricula[] = [
   { id: 1, aluno: "João Paulo Silva", turma: "Futebol Sub-12 A", modalidade: "Futebol", dataMatricula: "2026-02-03", situacao: "ATIVO" },
+  { id: 7, aluno: "João Paulo Silva", turma: "Futsal Sub-10", modalidade: "Futsal", dataMatricula: "2025-03-12", situacao: "INATIVO" },
   { id: 2, aluno: "Maria Clara Oliveira", turma: "Vôlei Feminino A", modalidade: "Vôlei", dataMatricula: "2026-02-04", situacao: "ATIVO" },
+  { id: 8, aluno: "Maria Clara Oliveira", turma: "Atletismo Iniciante", modalidade: "Atletismo", dataMatricula: "2025-08-20", situacao: "INATIVO" },
   { id: 3, aluno: "Pedro Henrique Costa", turma: "Futebol Sub-14 B", modalidade: "Futebol", dataMatricula: "2025-07-10", situacao: "INATIVO" },
   { id: 4, aluno: "Ana Beatriz Ferreira", turma: "Vôlei Feminino A", modalidade: "Vôlei", dataMatricula: "2026-02-05", situacao: "ATIVO" },
   { id: 5, aluno: "Lucas Rodrigues Martins", turma: "Futebol Sub-12 A", modalidade: "Futebol", dataMatricula: "2026-02-10", situacao: "ATIVO" },
@@ -202,23 +204,4 @@ export const mockDashboard = {
   ],
 };
 
-export type NotificationPrefKey = "novasMatriculas" | "frequencia" | "acompanhamentos" | "relatorios";
-
-export interface AppNotification {
-  id: number;
-  type: NotificationPrefKey;
-  title: string;
-  description: string;
-  time: string;
-  screen: "matriculas" | "frequencia" | "acompanhamentos" | "relatorios";
-}
-
-export const mockNotifications: AppNotification[] = [
-  { id: 1, type: "frequencia", title: "Chamada registrada", description: "Futebol Sub-12 A — Carlos Lima", time: "há 15 min", screen: "frequencia" },
-  { id: 2, type: "novasMatriculas", title: "Nova matrícula", description: "Isabela Nunes em Basquete Misto", time: "há 42 min", screen: "matriculas" },
-  { id: 3, type: "acompanhamentos", title: "Novo acompanhamento", description: "Sessão psicológica — João Paulo Silva", time: "há 1h", screen: "acompanhamentos" },
-  { id: 4, type: "relatorios", title: "Relatório gerado", description: "Frequência por turma — Jun/2026", time: "há 2h", screen: "relatorios" },
-  { id: 5, type: "novasMatriculas", title: "Nova matrícula", description: "Gabriel Alves em Futsal Sub-10", time: "há 3h", screen: "matriculas" },
-  { id: 6, type: "frequencia", title: "Baixa frequência", description: "Atletismo Iniciante — 78% no mês", time: "há 5h", screen: "frequencia" },
-];
 

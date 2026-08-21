@@ -17,7 +17,7 @@ export function ConfirmModal({ open, title, description, confirmLabel = "Confirm
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onCancel} />
-      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6">
+      <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-4 sm:p-6">
         <div className="flex items-center gap-4 mb-4">
           <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
             <AlertTriangle className="w-6 h-6 text-red-600" />
@@ -27,7 +27,7 @@ export function ConfirmModal({ open, title, description, confirmLabel = "Confirm
             <p className="text-gray-500 text-sm mt-0.5">{description}</p>
           </div>
         </div>
-        <div className="flex gap-3 justify-end mt-6">
+        <div className="flex flex-col-reverse sm:flex-row gap-3 justify-end mt-6">
           <button onClick={onCancel} className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors">
             Cancelar
           </button>

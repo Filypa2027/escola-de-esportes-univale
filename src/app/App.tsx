@@ -4,7 +4,6 @@ import { Header } from "./components/layout/Header";
 import { LoginScreen } from "./components/screens/LoginScreen";
 import { DashboardScreen } from "./components/screens/DashboardScreen";
 import { PessoasScreen } from "./components/screens/PessoasScreen";
-import { PessoaFormScreen } from "./components/screens/PessoaFormScreen";
 import { EscolasScreen } from "./components/screens/EscolasScreen";
 import { ModalidadesScreen } from "./components/screens/ModalidadesScreen";
 import { PeriodosScreen } from "./components/screens/PeriodosScreen";
@@ -13,23 +12,17 @@ import { MatriculasScreen } from "./components/screens/MatriculasScreen";
 import { AulasScreen } from "./components/screens/AulasScreen";
 import { FrequenciaScreen } from "./components/screens/FrequenciaScreen";
 import { AcompanhamentosScreen } from "./components/screens/AcompanhamentosScreen";
-import { AcompanhamentoFormScreen } from "./components/screens/AcompanhamentoFormScreen";
 import { RelatoriosScreen } from "./components/screens/RelatoriosScreen";
 import { ConfiguracoesScreen } from "./components/screens/ConfiguracoesScreen";
 import { SimpleListScreen } from "./components/screens/SimpleListScreen";
-import type { Person } from "./components/data/mockData";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentScreen, setCurrentScreen] = useState<Screen>("dashboard");
-  const [editPessoa, setEditPessoa] = useState<Person | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const handleNavigate = (screen: Screen, data?: unknown) => {
-    if (screen === "pessoa-form") {
-      setEditPessoa(data as Person | null);
-    }
+  const handleNavigate = (screen: Screen) => {
     setCurrentScreen(screen);
     setSidebarOpen(false);
     window.scrollTo(0, 0);
@@ -38,7 +31,6 @@ export default function App() {
   const handleLogout = () => {
     setIsLoggedIn(false);
     setCurrentScreen("dashboard");
-    setEditPessoa(null);
     setSearchQuery("");
     setSidebarOpen(false);
   };
@@ -50,8 +42,7 @@ export default function App() {
   const renderScreen = () => {
     switch (currentScreen) {
       case "dashboard": return <DashboardScreen searchQuery={searchQuery} />;
-      case "pessoas": return <PessoasScreen onNavigate={handleNavigate} searchQuery={searchQuery} />;
-      case "pessoa-form": return <PessoaFormScreen onNavigate={handleNavigate} editData={editPessoa} />;
+      case "pessoas": return <PessoasScreen searchQuery={searchQuery} />;
       case "escolas": return <EscolasScreen searchQuery={searchQuery} />;
       case "escolaridade": return <SimpleListScreen screen="escolaridade" searchQuery={searchQuery} />;
       case "categorias": return <SimpleListScreen screen="categorias" searchQuery={searchQuery} />;
@@ -61,8 +52,7 @@ export default function App() {
       case "matriculas": return <MatriculasScreen searchQuery={searchQuery} />;
       case "aulas": return <AulasScreen searchQuery={searchQuery} />;
       case "frequencia": return <FrequenciaScreen searchQuery={searchQuery} />;
-      case "acompanhamentos": return <AcompanhamentosScreen onNavigate={handleNavigate} searchQuery={searchQuery} />;
-      case "acompanhamento-form": return <AcompanhamentoFormScreen onNavigate={handleNavigate} />;
+      case "acompanhamentos": return <AcompanhamentosScreen searchQuery={searchQuery} />;
       case "relatorios": return <RelatoriosScreen searchQuery={searchQuery} />;
       case "configuracoes": return <ConfiguracoesScreen searchQuery={searchQuery} />;
       default: return <DashboardScreen searchQuery={searchQuery} />;

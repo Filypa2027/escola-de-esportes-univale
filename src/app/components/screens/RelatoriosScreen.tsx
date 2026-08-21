@@ -88,7 +88,7 @@ export function RelatoriosScreen({ searchQuery = "" }: RelatoriosScreenProps) {
               <Filter className="w-4 h-4 text-gray-400" />
               <span className="text-sm font-medium text-gray-700">Filtros Avançados</span>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
               <div>
                 <label className="block text-xs text-gray-500 mb-1">Período Letivo</label>
                 <select value={periodo} onChange={e => setPeriodo(e.target.value)} className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
@@ -116,12 +116,12 @@ export function RelatoriosScreen({ searchQuery = "" }: RelatoriosScreenProps) {
 
           {/* Chart */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-            <div className="flex items-center justify-between mb-5">
-              <div>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-5">
+              <div className="min-w-0">
                 <h3 className="text-gray-800">{current?.label}</h3>
                 <p className="text-xs text-gray-400 mt-0.5">Período: {periodo} {modalidade && `· ${modalidade}`}</p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 flex-shrink-0">
                 <button onClick={() => handleExport("PDF")} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
                   <Download className="w-3.5 h-3.5" /> PDF
                 </button>
@@ -143,7 +143,7 @@ export function RelatoriosScreen({ searchQuery = "" }: RelatoriosScreenProps) {
 
           {/* Table preview */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div className="px-4 sm:px-5 py-4 border-b border-gray-100 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <h3 className="text-gray-800 flex items-center gap-2">
                 <FileText className="w-4 h-4 text-gray-400" /> Dados do Relatório
               </h3>

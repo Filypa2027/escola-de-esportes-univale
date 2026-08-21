@@ -1,13 +1,12 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Bell, Search, ChevronDown, LogOut, Settings, X, Menu, ClipboardList, CheckSquare, Heart, FileText } from "lucide-react";
+import { Search, ChevronDown, LogOut, User, X, Menu, Sun, Moon } from "lucide-react";
 import type { Screen } from "./Sidebar";
-import { mockModalidades, mockTurmas, mockPessoas, type NotificationPrefKey } from "../data/mockData";
-import { useNotifications } from "../../theme/NotificationsContext";
+import { mockModalidades, mockTurmas, mockPessoas } from "../data/mockData";
+import { useTheme } from "../../theme/ThemeContext";
 
 const screenTitles: Record<string, string> = {
   dashboard: "Dashboard",
   pessoas: "Pessoas",
-  "pessoa-form": "Cadastro de Pessoa",
   escolas: "Escolas",
   "escola-form": "Cadastro de Escola",
   escolaridade: "Escolaridade",
@@ -19,9 +18,8 @@ const screenTitles: Record<string, string> = {
   aulas: "Aulas",
   frequencia: "Controle de Frequência",
   acompanhamentos: "Acompanhamentos",
-  "acompanhamento-form": "Novo Acompanhamento",
   relatorios: "Relatórios",
-  configuracoes: "Configurações",
+  configuracoes: "Perfil",
 };
 
 const navPages: { label: string; screen: Screen }[] = [
@@ -38,7 +36,7 @@ const navPages: { label: string; screen: Screen }[] = [
   { label: "Frequência", screen: "frequencia" },
   { label: "Acompanhamentos", screen: "acompanhamentos" },
   { label: "Relatórios", screen: "relatorios" },
-  { label: "Configurações", screen: "configuracoes" },
+  { label: "Perfil", screen: "configuracoes" },
 ];
 
 type SearchResult = {
@@ -74,20 +72,6 @@ function getSearchResults(query: string): SearchResult[] {
   return results.slice(0, 12);
 }
 
-const notifIcons: Record<NotificationPrefKey, React.ReactNode> = {
-  novasMatriculas: <ClipboardList className="w-4 h-4" />,
-  frequencia: <CheckSquare className="w-4 h-4" />,
-  acompanhamentos: <Heart className="w-4 h-4" />,
-  relatorios: <FileText className="w-4 h-4" />,
-};
-
-const notifIconClass: Record<NotificationPrefKey, string> = {
-  novasMatriculas: "bg-blue-50 text-blue-600",
-  frequencia: "bg-green-50 text-green-600",
-  acompanhamentos: "bg-pink-50 text-pink-600",
-  relatorios: "bg-amber-50 text-amber-600",
-};
-
 interface HeaderProps {
   currentScreen: string;
   onLogout?: () => void;
@@ -109,35 +93,36 @@ export function Header({
 }: HeaderProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
-  const notifRef = useRef<HTMLDivElement>(null);
-  const { items, unreadCount, isRead, markAsRead, markAllAsRead } = useNotifications();
+  const mobileSearchOverlayRef = useRef<HTMLDivElement>(null);
+  const { isDark, setTheme } = useTheme();
 
   const searchResults = useMemo(() => getSearchResults(searchQuery), [searchQuery]);
 
   useEffect(() => {
-    if (!isNotifOpen && !isDropdownOpen && !isSearchOpen) return;
+    if (!isDropdownOpen && !isSearchOpen && !mobileSearchOpen) return;
     function handleClickOutside(event: MouseEvent) {
       const target = event.target as Node;
       if (isDropdownOpen && dropdownRef.current && !dropdownRef.current.contains(target)) {
         setIsDropdownOpen(false);
       }
-      if (isSearchOpen && searchRef.current && !searchRef.current.contains(target)) {
+      const outsideSearch = !searchRef.current?.contains(target);
+      const outsideMobileOverlay = !mobileSearchOverlayRef.current?.contains(target);
+      if ((isSearchOpen || mobileSearchOpen) && outsideSearch && outsideMobileOverlay) {
         setIsSearchOpen(false);
-      }
-      if (isNotifOpen && notifRef.current && !notifRef.current.contains(target)) {
-        setIsNotifOpen(false);
+        setMobileSearchOpen(false);
       }
     }
     document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
-  }, [isDropdownOpen, isSearchOpen, isNotifOpen]);
+  }, [isDropdownOpen, isSearchOpen, mobileSearchOpen]);
 
   const handleSearchSelect = (result: SearchResult) => {
     onNavigate?.(result.screen);
     setIsSearchOpen(false);
+    setMobileSearchOpen(false);
   };
 
   const handleSearchKeyDown = (e: React.KeyboardEvent) => {
@@ -146,6 +131,7 @@ export function Header({
     }
     if (e.key === "Escape") {
       setIsSearchOpen(false);
+      setMobileSearchOpen(false);
     }
   };
 
@@ -157,6 +143,37 @@ export function Header({
 
   return (
     <header className="relative z-30 h-14 bg-white border-b border-gray-100 flex items-center justify-between gap-3 px-4 lg:px-6 flex-shrink-0">
+      {mobileSearchOpen && (
+        <div ref={mobileSearchOverlayRef} className="md:hidden absolute inset-y-0 left-14 right-[7rem] flex items-center px-2 bg-white z-20">
+          <Search className="w-4 h-4 absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+          <input
+            type="text"
+            placeholder="Pesquisar..."
+            value={searchQuery}
+            autoFocus
+            onChange={e => {
+              onSearchChange?.(e.target.value);
+              setIsSearchOpen(true);
+            }}
+            onFocus={() => setIsSearchOpen(true)}
+            onKeyDown={handleSearchKeyDown}
+            className="w-full pl-9 pr-8 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+          />
+          <button
+            type="button"
+            onClick={() => {
+              onSearchChange?.("");
+              setMobileSearchOpen(false);
+              setIsSearchOpen(false);
+            }}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+            aria-label="Fechar busca"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
+
       <div className="flex items-center gap-2 min-w-0 flex-1 lg:flex-none overflow-hidden">
         <button
           type="button"
@@ -171,42 +188,58 @@ export function Header({
           <span className="text-gray-300">/</span>
           <span className="text-gray-700 font-medium truncate">{screenTitles[currentScreen] || currentScreen}</span>
         </div>
-        <span className="lg:hidden text-sm font-medium text-gray-700 truncate">
+        <span className="hidden md:inline lg:hidden text-sm font-medium text-gray-700 truncate">
           {screenTitles[currentScreen] || currentScreen}
         </span>
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
         <div className="relative" ref={searchRef}>
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-          <input
-            type="text"
-            placeholder="Pesquisar..."
-            value={searchQuery}
-            onChange={e => {
-              onSearchChange?.(e.target.value);
-              setIsSearchOpen(true);
-            }}
-            onFocus={() => setIsSearchOpen(true)}
-            onKeyDown={handleSearchKeyDown}
-            className="pl-9 pr-8 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg w-32 sm:w-44 lg:w-56 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
-          />
-          {searchQuery && (
+          {!mobileSearchOpen && (
             <button
               type="button"
               onClick={() => {
-                onSearchChange?.("");
-                setIsSearchOpen(false);
+                setMobileSearchOpen(true);
+                setIsSearchOpen(true);
               }}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
-              title="Limpar busca"
+              className="md:hidden w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-50 text-gray-600 transition-colors"
+              aria-label="Pesquisar"
             >
-              <X className="w-3.5 h-3.5" />
+              <Search className="w-4 h-4" />
             </button>
           )}
 
+          <div className="relative hidden md:block">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="Pesquisar..."
+              value={searchQuery}
+              onChange={e => {
+                onSearchChange?.(e.target.value);
+                setIsSearchOpen(true);
+              }}
+              onFocus={() => setIsSearchOpen(true)}
+              onKeyDown={handleSearchKeyDown}
+              className="pl-9 pr-8 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg w-32 sm:w-44 lg:w-56 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => {
+                  onSearchChange?.("");
+                  setIsSearchOpen(false);
+                }}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
+                title="Limpar busca"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+
           {isSearchOpen && searchQuery.trim() && (
-            <div className="absolute right-0 lg:right-0 left-0 lg:left-auto top-full mt-2 w-72 sm:w-80 lg:w-96 max-h-80 overflow-y-auto bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
+            <div className="absolute right-0 top-full mt-2 w-[min(24rem,calc(100vw-2rem))] max-h-80 overflow-y-auto bg-white rounded-xl shadow-lg border border-gray-100 py-2 z-50">
               {searchResults.length === 0 ? (
                 <p className="px-4 py-3 text-sm text-gray-400">Nenhum resultado encontrado</p>
               ) : (
@@ -233,76 +266,15 @@ export function Header({
           )}
         </div>
 
-        <div className="relative z-10 flex-shrink-0" ref={notifRef}>
-          <button
-            type="button"
-            onMouseDown={e => e.stopPropagation()}
-            onClick={e => {
-              e.stopPropagation();
-              setIsNotifOpen(prev => !prev);
-              setIsDropdownOpen(false);
-              setIsSearchOpen(false);
-            }}
-            className="relative z-10 w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-            aria-expanded={isNotifOpen}
-            aria-label="Notificações"
-          >
-            <Bell className="w-4 h-4 text-gray-500 pointer-events-none" />
-            {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full pointer-events-none" />
-            )}
-          </button>
-
-          {isNotifOpen && (
-            <div className="absolute right-0 top-full mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-lg border border-gray-100 z-[60]">
-              <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-gray-100">
-                <p className="text-sm font-medium text-gray-800">Notificações</p>
-                {unreadCount > 0 && (
-                  <button
-                    type="button"
-                    onClick={markAllAsRead}
-                    className="text-xs font-medium text-blue-600 hover:text-blue-700"
-                  >
-                    Marcar todas como lidas
-                  </button>
-                )}
-              </div>
-              <div className="max-h-80 overflow-y-auto py-1">
-                {items.length === 0 ? (
-                  <p className="px-3.5 py-6 text-sm text-gray-400 text-center">Nenhuma notificação</p>
-                ) : (
-                  items.map(item => {
-                    const read = isRead(item.id);
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => {
-                          markAsRead(item.id);
-                          setIsNotifOpen(false);
-                          onNavigate?.(item.screen);
-                        }}
-                        className={`w-full flex items-start gap-2.5 px-3.5 py-2.5 text-left hover:bg-gray-50 transition-colors ${read ? "opacity-60" : ""}`}
-                      >
-                        <span className={`mt-0.5 w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${notifIconClass[item.type]}`}>
-                          {notifIcons[item.type]}
-                        </span>
-                        <span className="min-w-0 flex-1">
-                          <span className="flex items-center gap-1.5">
-                            <span className="text-sm font-medium text-gray-800 truncate">{item.title}</span>
-                            {!read && <span className="w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0" />}
-                          </span>
-                          <span className="block text-xs text-gray-500 truncate">{item.description}</span>
-                          <span className="block text-[11px] text-gray-400 mt-0.5">{item.time}</span>
-                        </span>
-                      </button>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-          )}
-        </div>
+        <button
+          type="button"
+          onClick={() => setTheme(isDark ? "Claro" : "Escuro")}
+          className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-gray-50 transition-colors"
+          aria-label={isDark ? "Ativar tema claro" : "Ativar tema escuro"}
+          title={isDark ? "Tema claro" : "Tema escuro"}
+        >
+          {isDark ? <Sun className="w-4 h-4 text-gray-500" /> : <Moon className="w-4 h-4 text-gray-500" />}
+        </button>
 
         <div className="relative pl-2 sm:pl-3 border-l border-gray-100" ref={dropdownRef}>
           <button
@@ -329,7 +301,7 @@ export function Header({
           </button>
 
           {isDropdownOpen && (
-            <div className="absolute right-0 top-full mt-2 w-60 bg-white rounded-xl shadow-lg border border-gray-100 py-1.5 z-50">
+            <div className="absolute right-0 top-full mt-2 w-60 max-w-[calc(100vw-2rem)] bg-white rounded-xl shadow-lg border border-gray-100 py-1.5 z-50">
               <div className="px-3.5 py-2.5 border-b border-gray-100">
                 <p className="text-sm font-medium text-gray-800">Cleber Siman</p>
                 <p className="text-xs text-gray-500 truncate">cleber.siman@univale.br</p>
@@ -347,8 +319,8 @@ export function Header({
                   }}
                   className="w-full flex items-center gap-2.5 px-3.5 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors text-left"
                 >
-                  <Settings className="w-4 h-4 text-gray-400" />
-                  Configurações
+                  <User className="w-4 h-4 text-gray-400" />
+                  Perfil
                 </button>
               </div>
 

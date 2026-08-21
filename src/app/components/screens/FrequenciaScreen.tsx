@@ -80,12 +80,12 @@ export function FrequenciaScreen({ searchQuery = "" }: FrequenciaScreenProps) {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* Chamada */}
         <div className="lg:col-span-2 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <div>
+          <div className="px-4 sm:px-5 py-4 border-b border-gray-100 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0">
               <h3 className="text-gray-800">{turma}</h3>
               <p className="text-xs text-gray-400 mt-0.5">{aula}</p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
               <button onClick={() => setAlunos(prev => prev.map(a => ({ ...a, presente: true })))} className="px-3 py-1.5 text-xs font-medium text-green-700 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
                 Todos presentes
               </button>
@@ -100,10 +100,12 @@ export function FrequenciaScreen({ searchQuery = "" }: FrequenciaScreenProps) {
               <div className="text-center py-8 text-gray-400 text-sm">Nenhum aluno encontrado{searchQuery ? ` para "${searchQuery}"` : ""}.</div>
             ) : (
               displayedAlunos.map((aluno, idx) => (
-              <div key={aluno.id} className={`flex items-center gap-4 px-5 py-3 transition-colors ${aluno.presente ? "hover:bg-green-50/30" : "hover:bg-red-50/20"}`}>
-                <span className="text-xs text-gray-300 w-5 text-right">{idx + 1}</span>
-                <div className="flex-1 text-sm font-medium text-gray-800">{aluno.nome}</div>
-                <div className="flex items-center gap-3">
+              <div key={aluno.id} className={`flex flex-col gap-2 lg:flex-row lg:items-center px-4 sm:px-5 py-3 transition-colors ${aluno.presente ? "hover:bg-green-50/30" : "hover:bg-red-50/20"}`}>
+                <div className="flex items-center gap-4 min-w-0">
+                  <span className="text-xs text-gray-300 w-5 text-right flex-shrink-0">{idx + 1}</span>
+                  <div className="flex-1 text-sm font-medium text-gray-800">{aluno.nome}</div>
+                </div>
+                <div className="flex items-center gap-3 pl-9 lg:pl-0 lg:ml-auto flex-shrink-0">
                   <span className={`text-xs font-medium ${aluno.presente ? "text-green-600" : "text-red-500"}`}>
                     {aluno.presente ? "Presente" : "Ausente"}
                   </span>
@@ -118,7 +120,7 @@ export function FrequenciaScreen({ searchQuery = "" }: FrequenciaScreenProps) {
             )))}
           </div>
 
-          <div className="px-5 py-4 border-t border-gray-100 flex items-center justify-between">
+          <div className="px-4 sm:px-5 py-4 border-t border-gray-100 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <span className="text-sm text-gray-500">{totalPresentes} de {alunos.length} presentes</span>
             <button
               onClick={handleSave}

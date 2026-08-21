@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Edit2, Trash2, X, Save, Dumbbell } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Save, Dumbbell, LayoutGrid, List } from "lucide-react";
 import { StatusBadge } from "../shared/StatusBadge";
 import { ConfirmModal } from "../shared/ConfirmModal";
 import { Toast, useToast } from "../shared/Toast";
@@ -25,6 +25,7 @@ export function ModalidadesScreen({ searchQuery = "" }: ModalidadesScreenProps) 
   const [editItem, setEditItem] = useState<Modality | null>(null);
   const [form, setForm] = useState({ modalidade: "", descricao: "", situacao: "ATIVO" as Status });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [view, setView] = useState<"cards" | "tabela">("cards");
   const { toast, showToast, hideToast } = useToast();
 
   const q = searchQuery.trim().toLowerCase();
@@ -64,81 +65,90 @@ export function ModalidadesScreen({ searchQuery = "" }: ModalidadesScreenProps) 
       {toast && <Toast type={toast.type} message={toast.message} onClose={hideToast} />}
       <ConfirmModal open={confirmDelete !== null} title="Excluir modalidade" description="A modalidade será removida." confirmLabel="Excluir" onConfirm={() => confirmDelete && handleDelete(confirmDelete)} onCancel={() => setConfirmDelete(null)} />
 
-      <div className="flex items-center justify-between">
-        <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
           <h1 className="text-gray-900">Modalidades Esportivas</h1>
           <p className="text-sm text-gray-500 mt-0.5">{active.length} modalidade{active.length !== 1 ? "s" : ""} encontrada{active.length !== 1 ? "s" : ""}</p>
         </div>
-        <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90" style={{ background: "var(--brand)" }}>
-          <Plus className="w-4 h-4" /> Nova Modalidade
-        </button>
+        <div className="flex items-center gap-2 flex-shrink-0 self-start sm:self-auto">
+          <div className="hidden lg:flex items-center border border-gray-200 rounded-lg overflow-hidden bg-white">
+            <button type="button" onClick={() => setView("cards")} className={`w-9 h-9 flex items-center justify-center ${view === "cards" ? "bg-gray-100 text-gray-800" : "text-gray-400 hover:bg-gray-50"}`} title="Cards">
+              <LayoutGrid className="w-4 h-4" />
+            </button>
+            <button type="button" onClick={() => setView("tabela")} className={`w-9 h-9 flex items-center justify-center ${view === "tabela" ? "bg-gray-100 text-gray-800" : "text-gray-400 hover:bg-gray-50"}`} title="Tabela">
+              <List className="w-4 h-4" />
+            </button>
+          </div>
+          <button onClick={openNew} className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg hover:opacity-90" style={{ background: "var(--brand)" }}>
+            <Plus className="w-4 h-4" /> Nova Modalidade
+          </button>
+        </div>
       </div>
 
-      {/* Cards grid */}
-      {active.length === 0 ? (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center text-gray-400 text-sm">
-          Nenhuma modalidade encontrada{searchQuery ? ` para "${searchQuery}"` : ""}.
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {active.map(m => (
-            <div key={m.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between mb-3">
-                <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm font-medium ${modalityColors[m.modalidade] ?? "bg-gray-100 text-gray-700"}`}>
-                  <Dumbbell className="w-3.5 h-3.5" />
-                  {m.modalidade}
+      <div className={view === "tabela" ? "lg:hidden" : ""}>
+        {active.length === 0 ? (
+          <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center text-gray-400 text-sm w-full">
+            Nenhuma modalidade encontrada{searchQuery ? ` para "${searchQuery}"` : ""}.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
+            {active.map(m => (
+              <div key={m.id} className="bg-white rounded-xl border border-gray-100 shadow-sm p-5 hover:shadow-md transition-shadow">
+                <div className="flex items-start justify-between mb-3">
+                  <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-sm font-medium ${modalityColors[m.modalidade] ?? "bg-gray-100 text-gray-700"}`}>
+                    <Dumbbell className="w-3.5 h-3.5" />
+                    {m.modalidade}
+                  </div>
+                  <StatusBadge status={m.situacao} size="sm" />
                 </div>
-                <StatusBadge status={m.situacao} size="sm" />
+                <p className="text-sm text-gray-500 mt-2 leading-relaxed">{m.descricao}</p>
+                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
+                  <button onClick={() => openEdit(m)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+                    <Edit2 className="w-3 h-3" /> Editar
+                  </button>
+                  <button onClick={() => setConfirmDelete(m.id)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
+                    <Trash2 className="w-3 h-3" /> Excluir
+                  </button>
+                </div>
               </div>
-              <p className="text-sm text-gray-500 mt-2 leading-relaxed">{m.descricao}</p>
-              <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
-                <button onClick={() => openEdit(m)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
-                  <Edit2 className="w-3 h-3" /> Editar
-                </button>
-                <button onClick={() => setConfirmDelete(m.id)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
-                  <Trash2 className="w-3 h-3" /> Excluir
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        )}
+      </div>
 
-      {/* Table view too */}
-      <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h3 className="text-gray-700">Lista Completa</h3>
-        </div>
-        <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-gray-100 bg-gray-50/50">
-              <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Modalidade</th>
-              <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Descrição</th>
-              <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Situação</th>
-              <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3">Ações</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {active.length === 0 ? (
-              <tr><td colSpan={4} className="text-center py-8 text-gray-400 text-sm">Nenhum registro encontrado.</td></tr>
-            ) : (
-              active.map(m => (
-                <tr key={m.id} className="hover:bg-gray-50/50 transition-colors">
-                  <td className="px-4 py-3 text-sm font-medium text-gray-800">{m.modalidade}</td>
-                  <td className="px-4 py-3 text-sm text-gray-500">{m.descricao}</td>
-                  <td className="px-4 py-3"><StatusBadge status={m.situacao} /></td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1 justify-end">
-                      <button onClick={() => openEdit(m)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => setConfirmDelete(m.id)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+      <div className={view === "tabela" ? "hidden lg:block" : "hidden"}>
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px]">
+            <thead>
+              <tr className="border-b border-gray-100 bg-gray-50/50">
+                <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3 whitespace-nowrap">Modalidade</th>
+                <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3 whitespace-nowrap">Descrição</th>
+                <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3 whitespace-nowrap">Situação</th>
+                <th className="text-right text-xs font-semibold text-gray-500 uppercase tracking-wide px-4 py-3 whitespace-nowrap">Ações</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {active.length === 0 ? (
+                <tr><td colSpan={4} className="text-center py-8 text-gray-400 text-sm whitespace-nowrap">Nenhum registro encontrado.</td></tr>
+              ) : (
+                active.map(m => (
+                  <tr key={m.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="px-4 py-3 text-sm font-medium text-gray-800 whitespace-nowrap">{m.modalidade}</td>
+                    <td className="px-4 py-3 text-sm text-gray-500 whitespace-nowrap">{m.descricao}</td>
+                    <td className="px-4 py-3 whitespace-nowrap"><StatusBadge status={m.situacao} /></td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <div className="flex items-center gap-1 justify-end">
+                        <button onClick={() => openEdit(m)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
+                        <button onClick={() => setConfirmDelete(m.id)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+          </div>
         </div>
       </div>
 
@@ -146,7 +156,7 @@ export function ModalidadesScreen({ searchQuery = "" }: ModalidadesScreenProps) 
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowForm(false)} />
-          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6">
+          <div className="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
               <h3>{editItem ? "Editar Modalidade" : "Nova Modalidade"}</h3>
               <button onClick={() => setShowForm(false)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-gray-100 text-gray-400"><X className="w-4 h-4" /></button>

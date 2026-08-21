@@ -1,16 +1,16 @@
 import {
   LayoutDashboard, Users, School, GraduationCap, Tag, Trophy, CalendarDays, Users2,
-  ClipboardList, BookOpen, CheckSquare, Heart, BarChart3, Settings, ChevronDown, ChevronRight, Dumbbell
+  ClipboardList, BookOpen, CheckSquare, Heart, BarChart3, ChevronDown, ChevronRight, Dumbbell
 } from "lucide-react";
 import { useState } from "react";
 
 export type Screen =
   | "login" | "dashboard"
-  | "pessoas" | "pessoa-form"
+  | "pessoas"
   | "escolas" | "escola-form"
   | "escolaridade" | "categorias"
   | "modalidades" | "periodos" | "turmas"
-  | "matriculas" | "aulas" | "frequencia" | "acompanhamentos" | "acompanhamento-form"
+  | "matriculas" | "aulas" | "frequencia" | "acompanhamentos"
   | "relatorios" | "configuracoes";
 
 interface NavGroup {
@@ -114,7 +114,7 @@ function SidebarContent({
                   <button
                     key={item.screen}
                     onClick={() => onNavigate(item.screen)}
-                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all ${currentScreen === item.screen || (item.screen === "pessoas" && currentScreen === "pessoa-form") || (item.screen === "acompanhamentos" && currentScreen === "acompanhamento-form")
+                    className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all ${currentScreen === item.screen
                         ? "bg-white/15 text-white font-medium"
                         : "text-white/70 hover:bg-white/10 hover:text-white"
                       }`}
@@ -136,14 +136,6 @@ function SidebarContent({
           >
             <BarChart3 className="w-4 h-4" />
             Relatórios
-          </button>
-          <button
-            onClick={() => onNavigate("configuracoes")}
-            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all ${currentScreen === "configuracoes" ? "bg-white/15 text-white font-medium" : "text-white/70 hover:bg-white/10 hover:text-white"
-              }`}
-          >
-            <Settings className="w-4 h-4" />
-            Configurações
           </button>
         </div>
       </nav>
