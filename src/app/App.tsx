@@ -44,8 +44,8 @@ export default function App() {
       case "dashboard": return <DashboardScreen searchQuery={searchQuery} />;
       case "pessoas": return <PessoasScreen searchQuery={searchQuery} />;
       case "escolas": return <EscolasScreen searchQuery={searchQuery} />;
-      case "escolaridade": return <SimpleListScreen screen="escolaridade" searchQuery={searchQuery} />;
-      case "categorias": return <SimpleListScreen screen="categorias" searchQuery={searchQuery} />;
+      case "escolaridade": return <SimpleListScreen key="escolaridade" screen="escolaridade" searchQuery={searchQuery} />;
+      case "categorias": return <SimpleListScreen key="categorias" screen="categorias" searchQuery={searchQuery} />;
       case "modalidades": return <ModalidadesScreen searchQuery={searchQuery} />;
       case "periodos": return <PeriodosScreen searchQuery={searchQuery} />;
       case "turmas": return <TurmasScreen searchQuery={searchQuery} />;
