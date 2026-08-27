@@ -26,6 +26,14 @@ const emptyForm = {
   situacao: "ATIVO" as Status,
 };
 
+const Field = ({ label, id, error, children }: { label: string; id: string; error?: string; children: React.ReactNode }) => (
+  <div>
+    <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
+    {children}
+    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+  </div>
+);
+
 export function PessoasScreen({ searchQuery = "" }: PessoasScreenProps) {
   const [pessoas, setPessoas] = useState<Person[]>(mockPessoas);
   const [search, setSearch] = useState("");
@@ -124,14 +132,6 @@ export function PessoasScreen({ searchQuery = "" }: PessoasScreenProps) {
   };
 
   const toInativar = confirmInativar ? pessoas.find(p => p.id === confirmInativar) : null;
-
-  const Field = ({ label, id, error, children }: { label: string; id: string; error?: string; children: React.ReactNode }) => (
-    <div>
-      <label htmlFor={id} className="block text-sm font-medium text-gray-700 mb-1.5">{label}</label>
-      {children}
-      {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
-    </div>
-  );
 
   const inputClass = (field: string) =>
     `w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 bg-gray-50 transition-all ${errors[field] ? "border-red-300 bg-red-50" : "border-gray-200"}`;
