@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Plus, Edit2, Trash2, X, Save, Clock } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Save, Clock, Eye, Users2 } from "lucide-react";
 import { StatusBadge } from "../shared/StatusBadge";
 import { ConfirmModal } from "../shared/ConfirmModal";
 import { Toast, useToast } from "../shared/Toast";
+import { DetailModal, ViewField, actionBtn, actionBtnDanger } from "../shared/DetailModal";
 import { mockTurmas, type Turma, type Status } from "../data/mockData";
 
 interface TurmasScreenProps {
@@ -14,14 +15,19 @@ export function TurmasScreen({ searchQuery = "" }: TurmasScreenProps) {
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState<Turma | null>(null);
-  const [form, setForm] = useState({ nome: "", modalidade: "", periodoLetivo: "", horario: "", diaSemana: "", situacao: "ATIVO" as Status });
+  const [form, setForm] = useState({ nome: "", modalidade: "", periodoLetivo: "", horarioInicio: "", horarioFim: "", diaSemana: "", situacao: "ATIVO" as Status });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [viewItem, setViewItem] = useState<Turma | null>(null);
+  const [filterSituacao, setFilterSituacao] = useState("");
+  const [filterModalidade, setFilterModalidade] = useState("");
   const { toast, showToast, hideToast } = useToast();
 
   const q = searchQuery.trim().toLowerCase();
   const active = turmas.filter(
     t =>
       t.situacao !== "DELETADO" &&
+      (!filterSituacao || t.situacao === filterSituacao) &&
+      (!filterModalidade || t.modalidade === filterModalidade) &&
       (!q ||
         t.nome.toLowerCase().includes(q) ||
         t.modalidade.toLowerCase().includes(q) ||
@@ -29,9 +35,21 @@ export function TurmasScreen({ searchQuery = "" }: TurmasScreenProps) {
         t.diaSemana.toLowerCase().includes(q) ||
         t.horario.toLowerCase().includes(q))
   );
+  const modalidades = [...new Set(mockTurmas.map(t => t.modalidade))];
 
-  const openNew = () => { setEditItem(null); setForm({ nome: "", modalidade: "", periodoLetivo: "", horario: "", diaSemana: "", situacao: "ATIVO" }); setErrors({}); setShowForm(true); };
-  const openEdit = (t: Turma) => { setEditItem(t); setForm({ nome: t.nome, modalidade: t.modalidade, periodoLetivo: t.periodoLetivo, horario: t.horario, diaSemana: t.diaSemana, situacao: t.situacao }); setErrors({}); setShowForm(true); };
+  const splitHorario = (h: string) => {
+    const [inicio = "", fim = ""] = h.split(/[–-]/).map(s => s.trim());
+    return { horarioInicio: inicio, horarioFim: fim };
+  };
+
+  const openNew = () => { setEditItem(null); setForm({ nome: "", modalidade: "", periodoLetivo: "", horarioInicio: "", horarioFim: "", diaSemana: "", situacao: "ATIVO" }); setErrors({}); setShowForm(true); };
+  const openEdit = (t: Turma) => {
+    const { horarioInicio, horarioFim } = splitHorario(t.horario);
+    setEditItem(t);
+    setForm({ nome: t.nome, modalidade: t.modalidade, periodoLetivo: t.periodoLetivo, horarioInicio, horarioFim, diaSemana: t.diaSemana, situacao: t.situacao });
+    setErrors({});
+    setShowForm(true);
+  };
 
   const handleSave = () => {
     const e: Record<string, string> = {};
@@ -39,11 +57,13 @@ export function TurmasScreen({ searchQuery = "" }: TurmasScreenProps) {
     if (!form.modalidade) e.modalidade = "Selecione uma modalidade";
     setErrors(e);
     if (Object.keys(e).length > 0) return;
+    const horario = [form.horarioInicio, form.horarioFim].filter(Boolean).join(" – ");
+    const payload = { ...form, horario };
     if (editItem) {
-      setTurmas(prev => prev.map(t => t.id === editItem.id ? { ...t, ...form } : t));
+      setTurmas(prev => prev.map(t => t.id === editItem.id ? { ...t, nome: payload.nome, modalidade: payload.modalidade, periodoLetivo: payload.periodoLetivo, horario: payload.horario, diaSemana: payload.diaSemana, situacao: payload.situacao } : t));
       showToast("success", "Turma atualizada!");
     } else {
-      setTurmas(prev => [...prev, { id: Date.now(), ...form }]);
+      setTurmas(prev => [...prev, { id: Date.now(), nome: payload.nome, modalidade: payload.modalidade, periodoLetivo: payload.periodoLetivo, horario: payload.horario, diaSemana: payload.diaSemana, situacao: payload.situacao }]);
       showToast("success", "Turma criada!");
     }
     setShowForm(false);
@@ -72,6 +92,33 @@ export function TurmasScreen({ searchQuery = "" }: TurmasScreenProps) {
         </button>
       </div>
 
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap gap-3">
+          <select value={filterModalidade} onChange={e => setFilterModalidade(e.target.value)} className="w-full min-w-0 lg:w-auto px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+            <option value="">Modalidade</option>
+            {modalidades.map(m => <option key={m} value={m}>{m}</option>)}
+          </select>
+          <select value={filterSituacao} onChange={e => setFilterSituacao(e.target.value)} className="w-full min-w-0 lg:w-auto px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+            <option value="">Situação</option>
+            <option value="ATIVO">Ativo</option>
+            <option value="INATIVO">Inativo</option>
+          </select>
+        </div>
+      </div>
+
+      <DetailModal open={!!viewItem} title="Turma" icon={<Users2 className="w-5 h-5 text-blue-600" />} onClose={() => setViewItem(null)}>
+        {viewItem && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <ViewField label="Nome" className="sm:col-span-2">{viewItem.nome}</ViewField>
+            <ViewField label="Modalidade">{viewItem.modalidade}</ViewField>
+            <ViewField label="Situação"><StatusBadge status={viewItem.situacao} size="sm" /></ViewField>
+            <ViewField label="Período letivo">{viewItem.periodoLetivo}</ViewField>
+            <ViewField label="Horário">{viewItem.horario}</ViewField>
+            <ViewField label="Dias" className="sm:col-span-2">{viewItem.diaSemana}</ViewField>
+          </div>
+        )}
+      </DetailModal>
+
       <div className="lg:hidden space-y-3">
         {active.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center text-gray-400 text-sm">
@@ -94,13 +141,10 @@ export function TurmasScreen({ searchQuery = "" }: TurmasScreenProps) {
               </div>
               <div className="text-gray-500">{t.diaSemana}</div>
             </div>
-            <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
-              <button onClick={() => openEdit(t)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
-                <Edit2 className="w-3 h-3" /> Editar
-              </button>
-              <button onClick={() => setConfirmDelete(t.id)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
-                <Trash2 className="w-3 h-3" /> Excluir
-              </button>
+            <div className="flex items-center gap-1 justify-end mt-4 pt-4 border-t border-gray-100">
+              <button type="button" title="Visualizar" onClick={() => setViewItem(t)} className={actionBtn}><Eye className="w-4 h-4" /></button>
+              <button type="button" title="Editar" onClick={() => openEdit(t)} className={actionBtn}><Edit2 className="w-4 h-4" /></button>
+              <button type="button" title="Excluir" onClick={() => setConfirmDelete(t.id)} className={actionBtnDanger}><Trash2 className="w-4 h-4" /></button>
             </div>
           </div>
         ))}
@@ -141,8 +185,9 @@ export function TurmasScreen({ searchQuery = "" }: TurmasScreenProps) {
                   <td className="px-4 py-3 whitespace-nowrap"><StatusBadge status={t.situacao} /></td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-1 justify-end">
-                      <button onClick={() => openEdit(t)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
-                      <button onClick={() => setConfirmDelete(t.id)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                      <button type="button" title="Visualizar" onClick={() => setViewItem(t)} className={actionBtn}><Eye className="w-4 h-4" /></button>
+                      <button type="button" title="Editar" onClick={() => openEdit(t)} className={actionBtn}><Edit2 className="w-4 h-4" /></button>
+                      <button type="button" title="Excluir" onClick={() => setConfirmDelete(t.id)} className={actionBtnDanger}><Trash2 className="w-4 h-4" /></button>
                     </div>
                   </td>
                 </tr>
@@ -184,8 +229,12 @@ export function TurmasScreen({ searchQuery = "" }: TurmasScreenProps) {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Horário</label>
-                <input value={form.horario} onChange={e => setForm(f => ({ ...f, horario: e.target.value }))} className={inputClass("horario")} placeholder="Ex: 08:00 – 09:30" />
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Horário Início</label>
+                <input type="time" value={form.horarioInicio} onChange={e => setForm(f => ({ ...f, horarioInicio: e.target.value }))} className={inputClass("horarioInicio")} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Horário Fim</label>
+                <input type="time" value={form.horarioFim} onChange={e => setForm(f => ({ ...f, horarioFim: e.target.value }))} className={inputClass("horarioFim")} />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Dia da Semana</label>

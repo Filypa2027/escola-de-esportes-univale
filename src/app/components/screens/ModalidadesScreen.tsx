@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Plus, Edit2, Trash2, X, Save, Dumbbell, LayoutGrid, List } from "lucide-react";
+import { Plus, Edit2, Trash2, X, Save, Dumbbell, LayoutGrid, List, Eye } from "lucide-react";
 import { StatusBadge } from "../shared/StatusBadge";
 import { ConfirmModal } from "../shared/ConfirmModal";
 import { Toast, useToast } from "../shared/Toast";
+import { DetailModal, ViewField, actionBtn, actionBtnDanger } from "../shared/DetailModal";
 import { mockModalidades, type Modality, type Status } from "../data/mockData";
 
 const modalityColors: Record<string, string> = {
@@ -26,11 +27,13 @@ export function ModalidadesScreen({ searchQuery = "" }: ModalidadesScreenProps) 
   const [form, setForm] = useState({ modalidade: "", descricao: "", situacao: "ATIVO" as Status });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [view, setView] = useState<"cards" | "tabela">("cards");
+  const [viewItem, setViewItem] = useState<Modality | null>(null);
+  const [filterSituacao, setFilterSituacao] = useState("");
   const { toast, showToast, hideToast } = useToast();
 
   const q = searchQuery.trim().toLowerCase();
   const active = modalidades.filter(
-    m => m.situacao !== "DELETADO" && (!q || m.modalidade.toLowerCase().includes(q) || m.descricao.toLowerCase().includes(q))
+    m => m.situacao !== "DELETADO" && (!filterSituacao || m.situacao === filterSituacao) && (!q || m.modalidade.toLowerCase().includes(q) || m.descricao.toLowerCase().includes(q))
   );
 
   const openNew = () => { setEditItem(null); setForm({ modalidade: "", descricao: "", situacao: "ATIVO" }); setErrors({}); setShowForm(true); };
@@ -85,6 +88,29 @@ export function ModalidadesScreen({ searchQuery = "" }: ModalidadesScreenProps) 
         </div>
       </div>
 
+      <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+        <select value={filterSituacao} onChange={e => setFilterSituacao(e.target.value)} className="w-full sm:w-auto px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+          <option value="">Situação</option>
+          <option value="ATIVO">Ativo</option>
+          <option value="INATIVO">Inativo</option>
+        </select>
+      </div>
+
+      <DetailModal open={!!viewItem} title="Modalidade" icon={<Dumbbell className="w-5 h-5 text-blue-600" />} onClose={() => setViewItem(null)}>
+        {viewItem && (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <ViewField label="Modalidade">{viewItem.modalidade}</ViewField>
+              <ViewField label="Situação"><StatusBadge status={viewItem.situacao} size="sm" /></ViewField>
+            </div>
+            <div>
+              <span className="text-gray-400 text-xs">Descrição</span>
+              <p className="mt-1.5 p-3 bg-gray-50 rounded-lg text-gray-700 leading-relaxed">{viewItem.descricao || "—"}</p>
+            </div>
+          </>
+        )}
+      </DetailModal>
+
       <div className={view === "tabela" ? "lg:hidden" : ""}>
         {active.length === 0 ? (
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-12 text-center text-gray-400 text-sm w-full">
@@ -102,13 +128,10 @@ export function ModalidadesScreen({ searchQuery = "" }: ModalidadesScreenProps) 
                   <StatusBadge status={m.situacao} size="sm" />
                 </div>
                 <p className="text-sm text-gray-500 mt-2 leading-relaxed">{m.descricao}</p>
-                <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
-                  <button onClick={() => openEdit(m)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
-                    <Edit2 className="w-3 h-3" /> Editar
-                  </button>
-                  <button onClick={() => setConfirmDelete(m.id)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
-                    <Trash2 className="w-3 h-3" /> Excluir
-                  </button>
+                <div className="flex items-center gap-1 justify-end mt-4 pt-4 border-t border-gray-100">
+                  <button type="button" title="Visualizar" onClick={() => setViewItem(m)} className={actionBtn}><Eye className="w-4 h-4" /></button>
+                  <button type="button" title="Editar" onClick={() => openEdit(m)} className={actionBtn}><Edit2 className="w-4 h-4" /></button>
+                  <button type="button" title="Excluir" onClick={() => setConfirmDelete(m.id)} className={actionBtnDanger}><Trash2 className="w-4 h-4" /></button>
                 </div>
               </div>
             ))}
@@ -139,8 +162,9 @@ export function ModalidadesScreen({ searchQuery = "" }: ModalidadesScreenProps) 
                     <td className="px-4 py-3 whitespace-nowrap"><StatusBadge status={m.situacao} /></td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <div className="flex items-center gap-1 justify-end">
-                        <button onClick={() => openEdit(m)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"><Edit2 className="w-3.5 h-3.5" /></button>
-                        <button onClick={() => setConfirmDelete(m.id)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                        <button type="button" title="Visualizar" onClick={() => setViewItem(m)} className={actionBtn}><Eye className="w-4 h-4" /></button>
+                        <button type="button" title="Editar" onClick={() => openEdit(m)} className={actionBtn}><Edit2 className="w-4 h-4" /></button>
+                        <button type="button" title="Excluir" onClick={() => setConfirmDelete(m.id)} className={actionBtnDanger}><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </td>
                   </tr>

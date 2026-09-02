@@ -51,7 +51,7 @@ const navGroups: NavGroup[] = [
     icon: <ClipboardList className="w-4 h-4" />,
     children: [
       { label: "Matrículas", screen: "matriculas", icon: <ClipboardList className="w-4 h-4" /> },
-      { label: "Aulas", screen: "aulas", icon: <BookOpen className="w-4 h-4" /> },
+      { label: "Plano de Aulas", screen: "aulas", icon: <BookOpen className="w-4 h-4" /> },
       { label: "Frequência", screen: "frequencia", icon: <CheckSquare className="w-4 h-4" /> },
       { label: "Acompanhamentos", screen: "acompanhamentos", icon: <Heart className="w-4 h-4" /> },
     ],

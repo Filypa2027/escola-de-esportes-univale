@@ -65,7 +65,8 @@ export interface Aula {
   data: string;
   horarioInicio: string;
   horarioFim: string;
-  descricao: string;
+  previsto: string;
+  realizado: string;
 }
 
 export interface Acompanhamento {
@@ -137,12 +138,12 @@ export const mockMatriculas: Matricula[] = [
 ];
 
 export const mockAulas: Aula[] = [
-  { id: 1, turma: "Futebol Sub-12 A", data: "2026-06-02", horarioInicio: "08:00", horarioFim: "09:30", descricao: "Treino de posicionamento e passes curtos" },
-  { id: 2, turma: "Vôlei Feminino A", data: "2026-06-02", horarioInicio: "14:00", horarioFim: "15:30", descricao: "Fundamentos: manchete e toque" },
-  { id: 3, turma: "Futebol Sub-12 A", data: "2026-06-04", horarioInicio: "08:00", horarioFim: "09:30", descricao: "Jogo simulado 4x4" },
-  { id: 4, turma: "Basquete Misto", data: "2026-06-03", horarioInicio: "16:00", horarioFim: "17:30", descricao: "Dribles e arremessos livres" },
-  { id: 5, turma: "Futsal Sub-10", data: "2026-06-04", horarioInicio: "09:00", horarioFim: "10:00", descricao: "Introdução às regras e fundamentos" },
-  { id: 6, turma: "Futebol Sub-14 B", data: "2026-06-05", horarioInicio: "10:00", horarioFim: "11:30", descricao: "Táticas defensivas e cobranças de falta" },
+  { id: 1, turma: "Futebol Sub-12 A", data: "2026-06-02", horarioInicio: "08:00", horarioFim: "09:30", previsto: "Treino de posicionamento e passes curtos", realizado: "Posicionamento aplicado em 3x3. Passes curtos com boa precisão." },
+  { id: 2, turma: "Vôlei Feminino A", data: "2026-06-02", horarioInicio: "14:00", horarioFim: "15:30", previsto: "Fundamentos: manchete e toque", realizado: "Manchete consolidada. Toque ainda irregular em bola alta." },
+  { id: 3, turma: "Futebol Sub-12 A", data: "2026-06-04", horarioInicio: "08:00", horarioFim: "09:30", previsto: "Jogo simulado 4x4", realizado: "" },
+  { id: 4, turma: "Basquete Misto", data: "2026-06-03", horarioInicio: "16:00", horarioFim: "17:30", previsto: "Dribles e arremessos livres", realizado: "Arremessos livres acima do esperado. Drible em velocidade a reforçar." },
+  { id: 5, turma: "Futsal Sub-10", data: "2026-06-04", horarioInicio: "09:00", horarioFim: "10:00", previsto: "Introdução às regras e fundamentos", realizado: "Regras apresentadas. Circuito de condução concluído." },
+  { id: 6, turma: "Futebol Sub-14 B", data: "2026-06-05", horarioInicio: "10:00", horarioFim: "11:30", previsto: "Táticas defensivas e cobranças de falta", realizado: "" },
 ];
 
 export const mockAcompanhamentos: Acompanhamento[] = [

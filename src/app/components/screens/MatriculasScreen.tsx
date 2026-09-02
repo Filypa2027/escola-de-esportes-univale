@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Plus, Search, Edit2, ClipboardList, X, Save, History } from "lucide-react";
+import { Plus, Search, Edit2, ClipboardList, X, Save, History, Eye } from "lucide-react";
 import { StatusBadge } from "../shared/StatusBadge";
 import { Toast, useToast } from "../shared/Toast";
+import { DetailModal, ViewField, actionBtn } from "../shared/DetailModal";
 import { mockPessoas, mockTurmas, mockMatriculas, type Matricula, type Status } from "../data/mockData";
 
 interface MatriculasScreenProps {
@@ -18,6 +19,9 @@ export function MatriculasScreen({ searchQuery = "" }: MatriculasScreenProps) {
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [historyAluno, setHistoryAluno] = useState<string | null>(null);
+  const [viewItem, setViewItem] = useState<Matricula | null>(null);
+  const [filterSituacao, setFilterSituacao] = useState("");
+  const [filterModalidade, setFilterModalidade] = useState("");
   const { toast, showToast, hideToast } = useToast();
 
   const effectiveSearch = (search || searchQuery).trim().toLowerCase();
@@ -27,10 +31,22 @@ export function MatriculasScreen({ searchQuery = "" }: MatriculasScreenProps) {
   const filtered = matriculas.filter(
     m =>
       m.situacao !== "DELETADO" &&
+      (!filterSituacao || m.situacao === filterSituacao) &&
+      (!filterModalidade || m.modalidade === filterModalidade) &&
       (!effectiveSearch ||
         m.aluno.toLowerCase().includes(effectiveSearch) ||
         m.turma.toLowerCase().includes(effectiveSearch) ||
         m.modalidade.toLowerCase().includes(effectiveSearch))
+  );
+
+  const modalidadesFiltro = [...new Set(mockMatriculas.map(m => m.modalidade))];
+
+  const alunoMatriculasAtivas = form.aluno
+    ? matriculas.filter(m => m.aluno === form.aluno && m.situacao === "ATIVO" && m.id !== editItem?.id)
+    : [];
+  const modalidadesAluno = [...new Set(alunoMatriculasAtivas.map(m => m.modalidade))];
+  const turmasDisponiveis = turmasAtivas.filter(
+    t => !modalidadesAluno.includes(t.modalidade) || t.nome === editItem?.turma
   );
 
   const openNew = () => {
@@ -57,15 +73,15 @@ export function MatriculasScreen({ searchQuery = "" }: MatriculasScreenProps) {
     const turma = turmasAtivas.find(t => t.nome === form.turma);
     const modalidade = turma?.modalidade ?? editItem?.modalidade ?? "";
 
-    const duplicada = matriculas.some(
+    const duplicadaModalidade = matriculas.some(
       m =>
         m.id !== editItem?.id &&
         m.aluno === form.aluno &&
-        m.turma === form.turma &&
+        m.modalidade === modalidade &&
         m.situacao === "ATIVO"
     );
-    if (duplicada) {
-      showToast("error", "Aluno já matriculado nesta turma.");
+    if (duplicadaModalidade) {
+      showToast("error", "Aluno já matriculado nesta modalidade.");
       return;
     }
 
@@ -115,14 +131,25 @@ export function MatriculasScreen({ searchQuery = "" }: MatriculasScreenProps) {
       </div>
 
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
-        <div className="relative">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Buscar por aluno, turma ou modalidade..."
-            className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap gap-3">
+          <div className="relative lg:flex-1 w-full min-w-0 sm:col-span-2 lg:col-span-1">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Buscar por aluno, turma ou modalidade..."
+              className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            />
+          </div>
+          <select value={filterModalidade} onChange={e => setFilterModalidade(e.target.value)} className="w-full min-w-0 lg:w-auto px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+            <option value="">Modalidade</option>
+            {modalidadesFiltro.map(m => <option key={m} value={m}>{m}</option>)}
+          </select>
+          <select value={filterSituacao} onChange={e => setFilterSituacao(e.target.value)} className="w-full min-w-0 lg:w-auto px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+            <option value="">Situação</option>
+            <option value="ATIVO">Ativo</option>
+            <option value="INATIVO">Inativo</option>
+          </select>
         </div>
       </div>
 
@@ -146,13 +173,10 @@ export function MatriculasScreen({ searchQuery = "" }: MatriculasScreenProps) {
               <StatusBadge status={m.situacao} size="sm" />
             </div>
             <div className="text-sm text-gray-500">{fmt(m.dataMatricula)}</div>
-            <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
-              <button title="Histórico" onClick={() => setHistoryAluno(m.aluno)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
-                <History className="w-3.5 h-3.5" /> Histórico
-              </button>
-              <button title="Editar" onClick={() => openEdit(m)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
-                <Edit2 className="w-3.5 h-3.5" /> Editar
-              </button>
+            <div className="flex items-center gap-1 justify-end mt-4 pt-4 border-t border-gray-100">
+              <button type="button" title="Visualizar" onClick={() => setViewItem(m)} className={actionBtn}><Eye className="w-4 h-4" /></button>
+              <button type="button" title="Histórico" onClick={() => setHistoryAluno(m.aluno)} className={actionBtn}><History className="w-4 h-4" /></button>
+              <button type="button" title="Editar" onClick={() => openEdit(m)} className={actionBtn}><Edit2 className="w-4 h-4" /></button>
             </div>
           </div>
         ))}
@@ -188,12 +212,9 @@ export function MatriculasScreen({ searchQuery = "" }: MatriculasScreenProps) {
                 <td className="px-4 py-3 whitespace-nowrap"><StatusBadge status={m.situacao} /></td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <div className="flex items-center gap-1 justify-end">
-                    <button title="Histórico" onClick={() => setHistoryAluno(m.aluno)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors">
-                      <History className="w-3.5 h-3.5" />
-                    </button>
-                    <button title="Editar" onClick={() => openEdit(m)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors">
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
+                    <button type="button" title="Visualizar" onClick={() => setViewItem(m)} className={actionBtn}><Eye className="w-4 h-4" /></button>
+                    <button type="button" title="Histórico" onClick={() => setHistoryAluno(m.aluno)} className={actionBtn}><History className="w-4 h-4" /></button>
+                    <button type="button" title="Editar" onClick={() => openEdit(m)} className={actionBtn}><Edit2 className="w-4 h-4" /></button>
                   </div>
                 </td>
               </tr>
@@ -202,6 +223,18 @@ export function MatriculasScreen({ searchQuery = "" }: MatriculasScreenProps) {
         </table>
         </div>
       </div>
+
+      <DetailModal open={!!viewItem} title="Matrícula" icon={<ClipboardList className="w-5 h-5 text-blue-600" />} onClose={() => setViewItem(null)}>
+        {viewItem && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <ViewField label="Aluno" className="sm:col-span-2">{viewItem.aluno}</ViewField>
+            <ViewField label="Turma">{viewItem.turma}</ViewField>
+            <ViewField label="Modalidade">{viewItem.modalidade}</ViewField>
+            <ViewField label="Data">{fmt(viewItem.dataMatricula)}</ViewField>
+            <ViewField label="Situação"><StatusBadge status={viewItem.situacao} size="sm" /></ViewField>
+          </div>
+        )}
+      </DetailModal>
 
       {historyAluno && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -250,7 +283,11 @@ export function MatriculasScreen({ searchQuery = "" }: MatriculasScreenProps) {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Aluno *</label>
-                <select value={form.aluno} onChange={e => setForm(f => ({ ...f, aluno: e.target.value }))} className={inputClass("aluno")}>
+                <select
+                  value={form.aluno}
+                  onChange={e => setForm(f => ({ ...f, aluno: e.target.value, turma: "" }))}
+                  className={inputClass("aluno")}
+                >
                   <option value="">Selecione...</option>
                   {alunos.map(a => <option key={a.id} value={a.nome}>{a.nome}</option>)}
                   {editItem && !alunos.some(a => a.nome === editItem.aluno) && (
@@ -258,17 +295,36 @@ export function MatriculasScreen({ searchQuery = "" }: MatriculasScreenProps) {
                   )}
                 </select>
                 {errors.aluno && <p className="text-xs text-red-500 mt-1">{errors.aluno}</p>}
+                {form.aluno && (
+                  <div className="mt-2 p-3 bg-blue-50/70 border border-blue-100 rounded-lg">
+                    <p className="text-xs font-medium text-blue-800 mb-1.5">Modalidades deste aluno</p>
+                    {modalidadesAluno.length === 0 ? (
+                      <p className="text-xs text-blue-700">Nenhuma matrícula ativa.</p>
+                    ) : (
+                      <div className="flex flex-wrap gap-1.5">
+                        {alunoMatriculasAtivas.map(m => (
+                          <span key={m.id} className="text-xs px-2 py-1 bg-white text-blue-700 rounded-md font-medium border border-blue-100">
+                            {m.modalidade} · {m.turma}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Turma *</label>
                 <select value={form.turma} onChange={e => setForm(f => ({ ...f, turma: e.target.value }))} className={inputClass("turma")}>
                   <option value="">Selecione...</option>
-                  {turmasAtivas.map(t => <option key={t.id} value={t.nome}>{t.nome}</option>)}
-                  {editItem && !turmasAtivas.some(t => t.nome === editItem.turma) && (
+                  {turmasDisponiveis.map(t => <option key={t.id} value={t.nome}>{t.nome} ({t.modalidade})</option>)}
+                  {editItem && !turmasDisponiveis.some(t => t.nome === editItem.turma) && (
                     <option value={editItem.turma}>{editItem.turma}</option>
                   )}
                 </select>
                 {errors.turma && <p className="text-xs text-red-500 mt-1">{errors.turma}</p>}
+                {form.aluno && turmasDisponiveis.length === 0 && (
+                  <p className="text-xs text-gray-500 mt-1">Não há turmas disponíveis nas modalidades ainda não cadastradas.</p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1.5">Situação</label>

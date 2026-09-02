@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Plus, Search, Edit2, Eye, UserX, Trash2, ChevronLeft, ChevronRight, X, Save } from "lucide-react";
+import { Plus, Search, Edit2, Eye, UserX, Trash2, ChevronLeft, ChevronRight, X, Save, Users } from "lucide-react";
 import { StatusBadge } from "../shared/StatusBadge";
 import { ConfirmModal } from "../shared/ConfirmModal";
 import { Toast, useToast } from "../shared/Toast";
+import { DetailModal, ViewField, actionBtn, actionBtnDanger, actionBtnWarn } from "../shared/DetailModal";
 import { mockPessoas, type Person, type Status } from "../data/mockData";
 
 interface PessoasScreenProps {
@@ -39,10 +40,12 @@ export function PessoasScreen({ searchQuery = "" }: PessoasScreenProps) {
   const [search, setSearch] = useState("");
   const [filterCategoria, setFilterCategoria] = useState("");
   const [filterEscola, setFilterEscola] = useState("");
+  const [filterEscolaridade, setFilterEscolaridade] = useState("");
   const [filterSituacao, setFilterSituacao] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const [confirmInativar, setConfirmInativar] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [viewItem, setViewItem] = useState<Person | null>(null);
   const [editItem, setEditItem] = useState<Person | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -64,12 +67,15 @@ export function PessoasScreen({ searchQuery = "" }: PessoasScreenProps) {
       return false;
     if (filterCategoria && p.categoria !== filterCategoria) return false;
     if (filterEscola && p.escola !== filterEscola) return false;
+    if (filterEscolaridade && p.escolaridade !== filterEscolaridade) return false;
     if (filterSituacao && p.situacao !== filterSituacao) return false;
     return true;
   });
 
   const categorias = [...new Set(mockPessoas.map(p => p.categoria))];
   const escolas = [...new Set(mockPessoas.filter(p => p.escola !== "—").map(p => p.escola))];
+  const escolaridades = [...new Set(mockPessoas.filter(p => p.escolaridade).map(p => p.escolaridade))];
+  const showAlunoFilters = !filterCategoria || filterCategoria === "Aluno";
 
   const openNew = () => {
     setEditItem(null);
@@ -109,11 +115,17 @@ export function PessoasScreen({ searchQuery = "" }: PessoasScreenProps) {
     setErrors(e);
     if (Object.keys(e).length > 0) return;
 
+    const isAluno = form.categoria === "Aluno";
+    const payload = {
+      ...form,
+      escola: isAluno ? (form.escola || "—") : "—",
+      escolaridade: isAluno ? form.escolaridade : "",
+    };
     if (editItem) {
-      setPessoas(prev => prev.map(p => p.id === editItem.id ? { ...p, ...form, escola: form.escola || "—" } : p));
+      setPessoas(prev => prev.map(p => p.id === editItem.id ? { ...p, ...payload } : p));
       showToast("success", "Cadastro atualizado com sucesso!");
     } else {
-      setPessoas(prev => [...prev, { id: Date.now(), ...form, escola: form.escola || "—" }]);
+      setPessoas(prev => [...prev, { id: Date.now(), ...payload }]);
       showToast("success", "Pessoa cadastrada com sucesso!");
     }
     setShowForm(false);
@@ -132,6 +144,8 @@ export function PessoasScreen({ searchQuery = "" }: PessoasScreenProps) {
   };
 
   const toInativar = confirmInativar ? pessoas.find(p => p.id === confirmInativar) : null;
+  const isAlunoForm = form.categoria === "Aluno";
+  const fmt = (d: string) => (d ? new Date(d + "T00:00:00").toLocaleDateString("pt-BR") : "—");
 
   const inputClass = (field: string) =>
     `w-full px-3 py-2 text-sm border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 bg-gray-50 transition-all ${errors[field] ? "border-red-300 bg-red-50" : "border-gray-200"}`;
@@ -183,21 +197,40 @@ export function PessoasScreen({ searchQuery = "" }: PessoasScreenProps) {
               className="w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 bg-gray-50"
             />
           </div>
-          <select value={filterCategoria} onChange={e => setFilterCategoria(e.target.value)} className="w-full min-w-0 lg:w-auto px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+          <select
+            value={filterCategoria}
+            onChange={e => {
+              const categoria = e.target.value;
+              setFilterCategoria(categoria);
+              if (categoria && categoria !== "Aluno") {
+                setFilterEscola("");
+                setFilterEscolaridade("");
+              }
+            }}
+            className="w-full min-w-0 lg:w-auto px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          >
             <option value="">Categoria</option>
             {categorias.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
-          <select value={filterEscola} onChange={e => setFilterEscola(e.target.value)} className="w-full min-w-0 lg:w-auto px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
-            <option value="">Escola</option>
-            {escolas.map(e => <option key={e} value={e}>{e}</option>)}
-          </select>
+          {showAlunoFilters && (
+            <>
+              <select value={filterEscola} onChange={e => setFilterEscola(e.target.value)} className="w-full min-w-0 lg:w-auto px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                <option value="">Escola</option>
+                {escolas.map(e => <option key={e} value={e}>{e}</option>)}
+              </select>
+              <select value={filterEscolaridade} onChange={e => setFilterEscolaridade(e.target.value)} className="w-full min-w-0 lg:w-auto px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+                <option value="">Escolaridade</option>
+                {escolaridades.map(e => <option key={e} value={e}>{e}</option>)}
+              </select>
+            </>
+          )}
           <select value={filterSituacao} onChange={e => setFilterSituacao(e.target.value)} className="w-full min-w-0 lg:w-auto px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
             <option value="">Situação</option>
             <option value="ATIVO">Ativo</option>
             <option value="INATIVO">Inativo</option>
           </select>
-          {(search || filterCategoria || filterEscola || filterSituacao) && (
-            <button onClick={() => { setSearch(""); setFilterCategoria(""); setFilterEscola(""); setFilterSituacao(""); }} className="w-full sm:w-auto px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+          {(search || filterCategoria || filterEscola || filterEscolaridade || filterSituacao) && (
+            <button onClick={() => { setSearch(""); setFilterCategoria(""); setFilterEscola(""); setFilterEscolaridade(""); setFilterSituacao(""); }} className="w-full sm:w-auto px-3 py-2 text-sm text-gray-500 hover:text-gray-700 border border-gray-200 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
               Limpar
             </button>
           )}
@@ -228,17 +261,17 @@ export function PessoasScreen({ searchQuery = "" }: PessoasScreenProps) {
               <div>{p.telefone}</div>
             </div>
             <div className="flex items-center gap-1 justify-end mt-4 pt-4 border-t border-gray-100">
-              <button title="Visualizar" className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors">
-                <Eye className="w-3.5 h-3.5" />
+              <button type="button" title="Visualizar" onClick={() => setViewItem(p)} className={actionBtn}>
+                <Eye className="w-4 h-4" />
               </button>
-              <button title="Editar" onClick={() => openEdit(p)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors">
-                <Edit2 className="w-3.5 h-3.5" />
+              <button type="button" title="Editar" onClick={() => openEdit(p)} className={actionBtn}>
+                <Edit2 className="w-4 h-4" />
               </button>
-              <button title={p.situacao === "ATIVO" ? "Inativar" : "Reativar"} onClick={() => setConfirmInativar(p.id)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-orange-50 text-gray-400 hover:text-orange-500 transition-colors">
-                <UserX className="w-3.5 h-3.5" />
+              <button type="button" title={p.situacao === "ATIVO" ? "Inativar" : "Reativar"} onClick={() => setConfirmInativar(p.id)} className={actionBtnWarn}>
+                <UserX className="w-4 h-4" />
               </button>
-              <button title="Excluir" onClick={() => setConfirmDelete(p.id)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors">
-                <Trash2 className="w-3.5 h-3.5" />
+              <button type="button" title="Excluir" onClick={() => setConfirmDelete(p.id)} className={actionBtnDanger}>
+                <Trash2 className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -283,17 +316,17 @@ export function PessoasScreen({ searchQuery = "" }: PessoasScreenProps) {
                   <td className="px-4 py-3 whitespace-nowrap"><StatusBadge status={p.situacao} /></td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-1 justify-end">
-                      <button title="Visualizar" className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors">
-                        <Eye className="w-3.5 h-3.5" />
+                      <button type="button" title="Visualizar" onClick={() => setViewItem(p)} className={actionBtn}>
+                        <Eye className="w-4 h-4" />
                       </button>
-                      <button title="Editar" onClick={() => openEdit(p)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors">
-                        <Edit2 className="w-3.5 h-3.5" />
+                      <button type="button" title="Editar" onClick={() => openEdit(p)} className={actionBtn}>
+                        <Edit2 className="w-4 h-4" />
                       </button>
-                      <button title={p.situacao === "ATIVO" ? "Inativar" : "Reativar"} onClick={() => setConfirmInativar(p.id)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-orange-50 text-gray-400 hover:text-orange-500 transition-colors">
-                        <UserX className="w-3.5 h-3.5" />
+                      <button type="button" title={p.situacao === "ATIVO" ? "Inativar" : "Reativar"} onClick={() => setConfirmInativar(p.id)} className={actionBtnWarn}>
+                        <UserX className="w-4 h-4" />
                       </button>
-                      <button title="Excluir" onClick={() => setConfirmDelete(p.id)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors">
-                        <Trash2 className="w-3.5 h-3.5" />
+                      <button type="button" title="Excluir" onClick={() => setConfirmDelete(p.id)} className={actionBtnDanger}>
+                        <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
                   </td>
@@ -317,6 +350,35 @@ export function PessoasScreen({ searchQuery = "" }: PessoasScreenProps) {
           </div>
         )}
       </div>
+
+      <DetailModal open={!!viewItem} title="Pessoa" icon={<Users className="w-5 h-5 text-blue-600" />} onClose={() => setViewItem(null)}>
+        {viewItem && (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <ViewField label="Nome">{viewItem.nome}</ViewField>
+              <ViewField label="Situação"><StatusBadge status={viewItem.situacao} size="sm" /></ViewField>
+              <ViewField label="Categoria">{viewItem.categoria}</ViewField>
+              <ViewField label="Data de nascimento">{fmt(viewItem.dataNascimento)}</ViewField>
+              <ViewField label="CPF">{viewItem.cpf}</ViewField>
+              <ViewField label="Telefone">{viewItem.telefone || "—"}</ViewField>
+              <ViewField label="E-mail" className="sm:col-span-2">{viewItem.email}</ViewField>
+              {viewItem.categoria === "Aluno" && (
+                <>
+                  <ViewField label="Escola">{viewItem.escola}</ViewField>
+                  <ViewField label="Escolaridade">{viewItem.escolaridade || "—"}</ViewField>
+                </>
+              )}
+            </div>
+            <div>
+              <span className="text-gray-400 text-xs">Endereço</span>
+              <p className="mt-1.5 p-3 bg-gray-50 rounded-lg text-gray-700 leading-relaxed">
+                {[viewItem.logradouro, viewItem.numero, viewItem.bairro, viewItem.cidade].filter(Boolean).join(", ") || "—"}
+                {viewItem.cep ? ` · CEP ${viewItem.cep}` : ""}
+              </p>
+            </div>
+          </>
+        )}
+      </DetailModal>
 
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -374,27 +436,20 @@ export function PessoasScreen({ searchQuery = "" }: PessoasScreenProps) {
               <div>
                 <h2 className="text-gray-800 mb-4 pb-3 border-b border-gray-100">Dados Complementares</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Field label="Escola" id="escola">
-                    <select id="escola" value={form.escola} onChange={e => setForm(f => ({ ...f, escola: e.target.value }))} className={inputClass("escola")}>
-                      <option value="">Selecione...</option>
-                      <option>Escola Municipal São Paulo</option>
-                      <option>Colégio Estadual Centro</option>
-                      <option>Colégio Particular Elite</option>
-                      <option>Escola Municipal Norte</option>
-                      <option>Instituto Educacional Novo Horizonte</option>
-                    </select>
-                  </Field>
-                  <Field label="Escolaridade" id="escolaridade">
-                    <select id="escolaridade" value={form.escolaridade} onChange={e => setForm(f => ({ ...f, escolaridade: e.target.value }))} className={inputClass("escolaridade")}>
-                      <option value="">Selecione...</option>
-                      <option>Ensino Fundamental</option>
-                      <option>Ensino Médio</option>
-                      <option>Superior Completo</option>
-                      <option>Pós-Graduação</option>
-                    </select>
-                  </Field>
                   <Field label="Categoria *" id="categoria" error={errors.categoria}>
-                    <select id="categoria" value={form.categoria} onChange={e => setForm(f => ({ ...f, categoria: e.target.value }))} className={inputClass("categoria")}>
+                    <select
+                      id="categoria"
+                      value={form.categoria}
+                      onChange={e => {
+                        const categoria = e.target.value;
+                        setForm(f => ({
+                          ...f,
+                          categoria,
+                          ...(categoria !== "Aluno" ? { escola: "", escolaridade: "" } : {}),
+                        }));
+                      }}
+                      className={inputClass("categoria")}
+                    >
                       <option value="">Selecione...</option>
                       <option>Aluno</option>
                       <option>Professor</option>
@@ -404,6 +459,29 @@ export function PessoasScreen({ searchQuery = "" }: PessoasScreenProps) {
                       <option>Gestor</option>
                     </select>
                   </Field>
+                  {isAlunoForm && (
+                    <>
+                      <Field label="Escola" id="escola">
+                        <select id="escola" value={form.escola} onChange={e => setForm(f => ({ ...f, escola: e.target.value }))} className={inputClass("escola")}>
+                          <option value="">Selecione...</option>
+                          <option>Escola Municipal São Paulo</option>
+                          <option>Colégio Estadual Centro</option>
+                          <option>Colégio Particular Elite</option>
+                          <option>Escola Municipal Norte</option>
+                          <option>Instituto Educacional Novo Horizonte</option>
+                        </select>
+                      </Field>
+                      <Field label="Escolaridade" id="escolaridade">
+                        <select id="escolaridade" value={form.escolaridade} onChange={e => setForm(f => ({ ...f, escolaridade: e.target.value }))} className={inputClass("escolaridade")}>
+                          <option value="">Selecione...</option>
+                          <option>Ensino Fundamental</option>
+                          <option>Ensino Médio</option>
+                          <option>Superior Completo</option>
+                          <option>Pós-Graduação</option>
+                        </select>
+                      </Field>
+                    </>
+                  )}
                   <Field label="Situação" id="situacao">
                     <div className="flex gap-3 mt-1">
                       {(["ATIVO", "INATIVO"] as const).map(s => (

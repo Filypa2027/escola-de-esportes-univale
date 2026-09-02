@@ -3,6 +3,7 @@ import { Plus, Search, Eye, Trash2, Heart, X, Save } from "lucide-react";
 import { StatusBadge } from "../shared/StatusBadge";
 import { ConfirmModal } from "../shared/ConfirmModal";
 import { Toast, useToast } from "../shared/Toast";
+import { actionBtn, actionBtnDanger } from "../shared/DetailModal";
 import { mockAcompanhamentos, type Acompanhamento, type Status } from "../data/mockData";
 
 interface AcompanhamentosScreenProps {
@@ -24,6 +25,7 @@ export function AcompanhamentosScreen({ searchQuery = "" }: AcompanhamentosScree
   const [search, setSearch] = useState("");
   const [filterProfissional, setFilterProfissional] = useState("");
   const [filterTurma, setFilterTurma] = useState("");
+  const [filterSituacao, setFilterSituacao] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
   const [viewItem, setViewItem] = useState<Acompanhamento | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -42,7 +44,8 @@ export function AcompanhamentosScreen({ searchQuery = "" }: AcompanhamentosScree
         a.profissional.toLowerCase().includes(effectiveSearch) ||
         a.turma.toLowerCase().includes(effectiveSearch)) &&
       (!filterProfissional || a.profissional === filterProfissional) &&
-      (!filterTurma || a.turma === filterTurma)
+      (!filterTurma || a.turma === filterTurma) &&
+      (!filterSituacao || a.situacao === filterSituacao)
   );
 
   const profissionais = [...new Set(mockAcompanhamentos.map(a => a.profissional))];
@@ -228,6 +231,11 @@ export function AcompanhamentosScreen({ searchQuery = "" }: AcompanhamentosScree
             <option value="">Turma</option>
             {turmas.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
+          <select value={filterSituacao} onChange={e => setFilterSituacao(e.target.value)} className="w-full min-w-0 lg:w-auto px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500/20">
+            <option value="">Situação</option>
+            <option value="ATIVO">Ativo</option>
+            <option value="INATIVO">Inativo</option>
+          </select>
         </div>
       </div>
 
@@ -245,13 +253,9 @@ export function AcompanhamentosScreen({ searchQuery = "" }: AcompanhamentosScree
             <div className="text-sm font-medium text-gray-800">{a.aluno}</div>
             <div className="text-sm text-gray-600 mt-1">{a.profissional}</div>
             <p className="text-sm text-gray-500 mt-2 line-clamp-2">{a.resumo}</p>
-            <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
-              <button onClick={() => setViewItem(a)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
-                <Eye className="w-3.5 h-3.5" /> Ver
-              </button>
-              <button onClick={() => setConfirmDelete(a.id)} className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
-                <Trash2 className="w-3.5 h-3.5" /> Excluir
-              </button>
+            <div className="flex items-center gap-1 justify-end mt-4 pt-4 border-t border-gray-100">
+              <button type="button" title="Visualizar" onClick={() => setViewItem(a)} className={actionBtn}><Eye className="w-4 h-4" /></button>
+              <button type="button" title="Excluir" onClick={() => setConfirmDelete(a.id)} className={actionBtnDanger}><Trash2 className="w-4 h-4" /></button>
             </div>
           </div>
         ))}
@@ -282,8 +286,8 @@ export function AcompanhamentosScreen({ searchQuery = "" }: AcompanhamentosScree
                 <td className="px-4 py-3 whitespace-nowrap"><StatusBadge status={a.situacao} /></td>
                 <td className="px-4 py-3 whitespace-nowrap">
                   <div className="flex items-center gap-1 justify-end">
-                    <button onClick={() => setViewItem(a)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-blue-50 text-gray-400 hover:text-blue-600 transition-colors"><Eye className="w-3.5 h-3.5" /></button>
-                    <button onClick={() => setConfirmDelete(a.id)} className="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
+                    <button type="button" title="Visualizar" onClick={() => setViewItem(a)} className={actionBtn}><Eye className="w-4 h-4" /></button>
+                    <button type="button" title="Excluir" onClick={() => setConfirmDelete(a.id)} className={actionBtnDanger}><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </td>
               </tr>

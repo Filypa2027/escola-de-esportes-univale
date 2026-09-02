@@ -41,8 +41,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return stored === "Escuro" || stored === "Sistema" ? stored : "Claro";
   });
   const [fontSize, setFontSizeState] = useState(() => {
-    const stored = Number(readStored(STORAGE_FONT, "14"));
-    return Number.isFinite(stored) ? Math.min(20, Math.max(12, stored)) : 14;
+    const stored = Number(readStored(STORAGE_FONT, "18"));
+    const size = Number.isFinite(stored) ? stored : 18;
+    const upgraded = size === 14 ? 18 : size;
+    return Math.min(22, Math.max(14, upgraded));
   });
 
   const isDark = theme === "Escuro" || (theme === "Sistema" && systemPrefersDark());
